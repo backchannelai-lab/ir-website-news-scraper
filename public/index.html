@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR Website News Scraper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>IR Website News Scraper</h1>
+    <div style="margin-bottom: 20px;">
+        <a href="/settings.html"><button>Settings</button></a>
+        <a href="/api/logout"><button>Logout</button></a>
+    </div>
+
+    <h2>Add Company</h2>
+    <form id="add-company-form">
+        <input type="text" id="company-name" placeholder="Company Name" required>
+        <input type="text" id="company-ticker" placeholder="Ticker Symbol (e.g., CY5)" required>
+        <input type="url" id="company-url" placeholder="Investor Relations URL" required>
+        <button type="submit">Add Company</button>
+    </form>
+
+    <h2>Company List</h2>
+    <ul id="company-list"></ul>
+
+    <h2>Automation</h2>
+    <div style="margin: 20px 0;">
+        <button id="test-automation-btn" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+            Test Automation Now
+        </button>
+        <p style="font-size: 12px; color: #666; margin-top: 5px;">
+            This will run the scraping automation and send emails immediately
+        </p>
+    </div>
+
+    <div id="automation-status" style="display: none; padding: 10px; margin: 10px 0; border-radius: 4px;"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

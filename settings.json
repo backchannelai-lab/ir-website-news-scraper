@@ -1,0 +1,17 @@
+{
+  "email": {
+    "smtpHost": "smtp.gmail.com",
+    "smtpPort": 587,
+    "smtpUser": "flowpayteam@gmail.com",
+    "smtpPass": "amuz wxny cmyo xtbe",
+    "fromName": "IR Automation",
+    "fromEmail": "mforgan18@gmail.com",
+    "toEmails": [
+      "mforgan18@gmail.com"
+    ],
+    "subject": "Daily Investor Relations Update"
+  },
+  "schedule": {
+    "cron": "0 8 * * *"
+  }
+}
