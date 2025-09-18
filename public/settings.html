@@ -5,171 +5,143 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - IR Website News Scraper</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .settings-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .settings-section {
-            background: #f9f9f9;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .form-group textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        .btn {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .btn-secondary {
-            background: #6c757d;
-        }
-        .btn-secondary:hover {
-            background: #545b62;
-        }
-        .status-message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            display: none;
-        }
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .navigation {
-            margin-bottom: 20px;
-        }
-        .navigation a {
-            color: #007bff;
-            text-decoration: none;
-            margin-right: 15px;
-        }
-        .navigation a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="settings-container">
-        <div class="navigation">
-            <a href="/">← Back to Dashboard</a>
-            <a href="/api/logout">Logout</a>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-title">PR Scraper</div>
+            <ul class="sidebar-nav">
+                <li><a href="/">PR Scraper</a></li>
+                <li><a href="/settings.html" class="active">Settings</a></li>
+                <li><a href="/api/logout">Logout</a></li>
+            </ul>
         </div>
-        
-        <h1>Settings</h1>
-        
-        <div id="status-message" class="status-message"></div>
-        
-        <div class="settings-section">
-            <h2>Email Configuration</h2>
-            <form id="email-settings-form">
-                <div class="form-group">
-                    <label for="smtp-host">SMTP Host:</label>
-                    <input type="text" id="smtp-host" placeholder="smtp.gmail.com" required>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>Settings</h1>
+            </div>
+            <div id="status-message" class="status-message" style="display: none;"></div>
+            
+            <!-- Email Configuration Section -->
+            <div class="form-container">
+                <h2>Email Configuration</h2>
+                <p class="text-muted mb-3">Configure your email settings for automated reports</p>
+                <form id="email-settings-form">
+                    <div class="form-group">
+                        <label for="smtp-host">SMTP Host</label>
+                        <input type="text" id="smtp-host" placeholder="smtp.gmail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="smtp-port">SMTP Port</label>
+                        <input type="number" id="smtp-port" placeholder="587" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="smtp-user">SMTP Username</label>
+                        <input type="email" id="smtp-user" placeholder="your-email@gmail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="smtp-pass">SMTP Password</label>
+                        <input type="password" id="smtp-pass" placeholder="Your email password or app password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="from-name">From Name</label>
+                        <input type="text" id="from-name" placeholder="IR Automation" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="from-email">From Email</label>
+                        <input type="email" id="from-email" placeholder="automation@yourcompany.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="to-emails">Recipients (comma-separated)</label>
+                        <textarea id="to-emails" placeholder="recipient1@example.com, recipient2@example.com" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email-subject">Email Subject</label>
+                        <input type="text" id="email-subject" placeholder="Daily Investor Relations Update" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Email Settings</button>
+                </form>
+            </div>
+            
+            <!-- Schedule Configuration Section -->
+            <div class="form-container">
+                <h2>Scraping Schedule</h2>
+                <p class="text-muted mb-3">Set when the automation should run</p>
+                <form id="schedule-form">
+                    <div class="form-group">
+                        <label for="cron-schedule">Schedule (Cron Format)</label>
+                        <input type="text" id="cron-schedule" placeholder="0 8 * * *" required>
+                        <small class="text-muted">Current: Daily at 8:00 AM. Format: minute hour day month weekday</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Schedule</button>
+                </form>
+            </div>
+            
+            <!-- Test Section -->
+            <div class="automation-section">
+                <h2>Testing & Validation</h2>
+                <p class="text-muted mb-3">Test your configuration to ensure everything works properly</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                    <div class="form-container" style="margin: 0;">
+                        <h3>Test Email</h3>
+                        <p class="text-muted mb-2">Send a test email to verify your configuration</p>
+                        <button id="test-email-btn" class="btn btn-secondary">Send Test Email</button>
+                    </div>
+                    
+                    <div class="form-container" style="margin: 0;">
+                        <h3>Test Automation</h3>
+                        <p class="text-muted mb-2">Run the complete scraping automation</p>
+                        <button id="test-automation-btn" class="btn btn-success">Test Full Automation</button>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="smtp-port">SMTP Port:</label>
-                    <input type="number" id="smtp-port" placeholder="587" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="smtp-user">SMTP Username:</label>
-                    <input type="email" id="smtp-user" placeholder="your-email@gmail.com" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="smtp-pass">SMTP Password:</label>
-                    <input type="password" id="smtp-pass" placeholder="Your email password or app password" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="from-name">From Name:</label>
-                    <input type="text" id="from-name" placeholder="IR Automation" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="from-email">From Email:</label>
-                    <input type="email" id="from-email" placeholder="automation@yourcompany.com" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="to-emails">Recipients (comma-separated):</label>
-                    <textarea id="to-emails" placeholder="recipient1@example.com, recipient2@example.com" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email-subject">Email Subject:</label>
-                    <input type="text" id="email-subject" placeholder="Daily Investor Relations Update" required>
-                </div>
-                
-                <button type="submit" class="btn">Save Email Settings</button>
-            </form>
-        </div>
-        
-        <div class="settings-section">
-            <h2>Scraping Schedule</h2>
-            <form id="schedule-form">
-                <div class="form-group">
-                    <label for="cron-schedule">Schedule (Cron Format):</label>
-                    <input type="text" id="cron-schedule" placeholder="0 8 * * *" required>
-                    <small>Current: Daily at 8:00 AM. Format: minute hour day month weekday</small>
-                </div>
-                
-                <button type="submit" class="btn">Save Schedule</button>
-            </form>
-        </div>
-        
-        <div class="settings-section">
-            <h2>Test Email</h2>
-            <p>Send a test email to verify your configuration:</p>
-            <button id="test-email-btn" class="btn btn-secondary">Send Test Email</button>
-        </div>
-        
-        <div class="settings-section">
-            <h2>Test Automation</h2>
-            <p>Run the complete scraping automation to test the full workflow:</p>
-            <button id="test-automation-btn" class="btn" style="background: #28a745;">Test Full Automation</button>
-            <div id="automation-status" class="status-message" style="display: none;"></div>
+                <div id="automation-status" class="status-message" style="display: none; margin-top: 20px;"></div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `notification status-message status-${type}`;
+            notification.textContent = message;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '1000';
+            notification.style.minWidth = '300px';
+            notification.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
         // Load current settings
         async function loadSettings() {
             try {
@@ -190,7 +162,7 @@
                 document.getElementById('cron-schedule').value = settings.schedule?.cron || '0 8 * * *';
             } catch (error) {
                 console.error('Error loading settings:', error);
-                showMessage('Error loading settings', 'error');
+                showNotification('Error loading settings', 'error');
             }
         }
 
@@ -210,15 +182,23 @@
         document.getElementById('email-settings-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitBtn = document.querySelector('#email-settings-form button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            submitBtn.classList.add('loading');
+            
             const emailSettings = {
-                smtpHost: document.getElementById('smtp-host').value,
+                smtpHost: document.getElementById('smtp-host').value.trim(),
                 smtpPort: parseInt(document.getElementById('smtp-port').value),
-                smtpUser: document.getElementById('smtp-user').value,
+                smtpUser: document.getElementById('smtp-user').value.trim(),
                 smtpPass: document.getElementById('smtp-pass').value,
-                fromName: document.getElementById('from-name').value,
-                fromEmail: document.getElementById('from-email').value,
+                fromName: document.getElementById('from-name').value.trim(),
+                fromEmail: document.getElementById('from-email').value.trim(),
                 toEmails: document.getElementById('to-emails').value.split(',').map(email => email.trim()),
-                subject: document.getElementById('email-subject').value
+                subject: document.getElementById('email-subject').value.trim()
             };
             
             try {
@@ -232,12 +212,19 @@
                 
                 if (response.ok) {
                     showMessage('Email settings saved successfully!', 'success');
+                    showNotification('Email settings updated successfully!', 'success');
                 } else {
                     showMessage('Error saving email settings', 'error');
+                    showNotification('Failed to save email settings', 'error');
                 }
             } catch (error) {
                 console.error('Error saving email settings:', error);
                 showMessage('Error saving email settings', 'error');
+                showNotification('Network error saving email settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                submitBtn.classList.remove('loading');
             }
         });
 
@@ -245,8 +232,16 @@
         document.getElementById('schedule-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const submitBtn = document.querySelector('#schedule-form button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            submitBtn.classList.add('loading');
+            
             const scheduleSettings = {
-                cron: document.getElementById('cron-schedule').value
+                cron: document.getElementById('cron-schedule').value.trim()
             };
             
             try {
@@ -260,17 +255,31 @@
                 
                 if (response.ok) {
                     showMessage('Schedule settings saved successfully!', 'success');
+                    showNotification('Schedule updated successfully!', 'success');
                 } else {
                     showMessage('Error saving schedule settings', 'error');
+                    showNotification('Failed to save schedule settings', 'error');
                 }
             } catch (error) {
                 console.error('Error saving schedule settings:', error);
                 showMessage('Error saving schedule settings', 'error');
+                showNotification('Network error saving schedule settings', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                submitBtn.classList.remove('loading');
             }
         });
 
         // Test email
         document.getElementById('test-email-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('test-email-btn');
+            const originalText = btn.textContent;
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            btn.classList.add('loading');
+            
             try {
                 const response = await fetch('/api/test-email', {
                     method: 'POST'
@@ -278,12 +287,19 @@
                 
                 if (response.ok) {
                     showMessage('Test email sent successfully!', 'success');
+                    showNotification('Test email sent! Check your inbox.', 'success');
                 } else {
                     showMessage('Error sending test email', 'error');
+                    showNotification('Failed to send test email', 'error');
                 }
             } catch (error) {
                 console.error('Error sending test email:', error);
                 showMessage('Error sending test email', 'error');
+                showNotification('Network error sending test email', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                btn.classList.remove('loading');
             }
         });
 
@@ -291,9 +307,11 @@
         document.getElementById('test-automation-btn').addEventListener('click', async () => {
             const btn = document.getElementById('test-automation-btn');
             const statusDiv = document.getElementById('automation-status');
+            const originalText = btn.textContent;
             
             btn.disabled = true;
             btn.textContent = 'Running...';
+            btn.classList.add('loading');
             statusDiv.style.display = 'block';
             statusDiv.className = 'status-message status-info';
             statusDiv.textContent = 'Running automation test...';
@@ -306,17 +324,21 @@
                 if (response.ok) {
                     statusDiv.className = 'status-message status-success';
                     statusDiv.textContent = 'Automation test completed successfully! Check your email.';
+                    showNotification('Automation test completed! Check your email for results.', 'success');
                 } else {
                     statusDiv.className = 'status-message status-error';
                     statusDiv.textContent = 'Error running automation test.';
+                    showNotification('Automation test failed. Please check your settings.', 'error');
                 }
             } catch (error) {
                 console.error('Error testing automation:', error);
                 statusDiv.className = 'status-message status-error';
                 statusDiv.textContent = 'Error running automation test.';
+                showNotification('Network error during automation test.', 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Test Full Automation';
+                btn.textContent = originalText;
+                btn.classList.remove('loading');
             }
         });
 
