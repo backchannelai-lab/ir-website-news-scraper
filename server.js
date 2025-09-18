@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
@@ -31,6 +32,7 @@ app.use(session({
 }));
 
 const COMPANIES_FILE = 'companies.json';
+const RECIPIENTS_FILE = 'recipients.json';
 const SETTINGS_FILE = 'settings.json';
 const SENT_ITEMS_FILE = 'sent-items.json';
 
@@ -39,44 +41,51 @@ const SENT_ITEMS_FILE = 'sent-items.json';
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+        
         const data = await fs.readFile(USERS_FILE, 'utf8');
         const users = JSON.parse(data);
 
         if (users.find(user => user.username === username)) {
-            return res.status(400).send('Username already exists');
+            return res.status(400).json({ error: 'Username already exists' });
         }
 
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         users.push({ username, password: hashedPassword });
         await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
-        res.status(201).send('User created successfully');
+        res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
-        res.status(500).send('Error registering user');
+        console.error('Error registering user:', error);
+        res.status(500).json({ error: 'Error registering user' });
     }
 });
 
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log('Login attempt:', { username, password });
+        
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required' });
+        }
+        
         const data = await fs.readFile(USERS_FILE, 'utf8');
         const users = JSON.parse(data);
-        console.log('Users from file:', users);
         const user = users.find(user => user.username === username);
-        console.log('Found user:', user);
 
         if (user) {
             const match = await bcrypt.compare(password, user.password);
-            console.log('Password match:', match);
             if (match) {
                 req.session.user = username;
-                return res.status(200).send('Login successful');
+                return res.status(200).json({ message: 'Login successful' });
             }
         }
-        res.status(401).send('Invalid credentials');
+        res.status(401).json({ error: 'Invalid credentials' });
     } catch (error) {
         console.error('Error logging in:', error);
-        res.status(500).send('Error logging in');
+        res.status(500).json({ error: 'Error logging in' });
     }
 });
 
@@ -92,19 +101,61 @@ app.get('/api/companies', async (req, res) => {
         const companies = JSON.parse(data);
         res.json(companies);
     } catch (error) {
-        console.error('Error reading companies:', error);
-        res.status(500).json({ error: 'Error reading companies' });
+        if (error.code === 'ENOENT') {
+            res.json([]);
+        } else {
+            console.error('Error reading companies:', error);
+            res.status(500).json({ error: 'Error reading companies' });
+        }
     }
 });
 
 app.post('/api/companies', async (req, res) => {
     try {
         const companies = req.body;
+        
+        if (!Array.isArray(companies)) {
+            return res.status(400).json({ error: 'Companies data must be an array' });
+        }
+        
         await fs.writeFile(COMPANIES_FILE, JSON.stringify(companies, null, 2));
         res.status(200).json({ message: 'Companies saved successfully' });
     } catch (error) {
         console.error('Error saving companies:', error);
         res.status(500).json({ error: 'Error saving companies' });
+    }
+});
+
+// Recipients API endpoints
+app.get('/api/recipients', async (req, res) => {
+    try {
+        const data = await fs.readFile(RECIPIENTS_FILE, 'utf8');
+        const recipients = JSON.parse(data);
+        res.json(recipients);
+    } catch (error) {
+        // If file doesn't exist, return empty array
+        if (error.code === 'ENOENT') {
+            res.json([]);
+        } else {
+            console.error('Error reading recipients:', error);
+            res.status(500).json({ error: 'Error reading recipients' });
+        }
+    }
+});
+
+app.post('/api/recipients', async (req, res) => {
+    try {
+        const recipients = req.body;
+        
+        if (!Array.isArray(recipients)) {
+            return res.status(400).json({ error: 'Recipients data must be an array' });
+        }
+        
+        await fs.writeFile(RECIPIENTS_FILE, JSON.stringify(recipients, null, 2));
+        res.status(200).json({ message: 'Recipients saved successfully' });
+    } catch (error) {
+        console.error('Error saving recipients:', error);
+        res.status(500).json({ error: 'Error saving recipients' });
     }
 });
 
@@ -115,16 +166,34 @@ app.get('/api/settings', async (req, res) => {
         const settings = JSON.parse(data);
         res.json(settings);
     } catch (error) {
-        console.error('Error reading settings:', error);
-        res.status(500).json({ error: 'Error reading settings' });
+        if (error.code === 'ENOENT') {
+            res.json({});
+        } else {
+            console.error('Error reading settings:', error);
+            res.status(500).json({ error: 'Error reading settings' });
+        }
     }
 });
 
 app.post('/api/settings/email', async (req, res) => {
     try {
         const emailSettings = req.body;
-        const data = await fs.readFile(SETTINGS_FILE, 'utf8');
-        const settings = JSON.parse(data);
+        
+        // Validate required fields
+        const requiredFields = ['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'fromName', 'fromEmail', 'toEmails', 'subject'];
+        for (const field of requiredFields) {
+            if (!emailSettings[field]) {
+                return res.status(400).json({ error: `${field} is required` });
+            }
+        }
+        
+        let settings = {};
+        try {
+            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
         
         settings.email = emailSettings;
         await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
@@ -139,8 +208,18 @@ app.post('/api/settings/email', async (req, res) => {
 app.post('/api/settings/schedule', async (req, res) => {
     try {
         const scheduleSettings = req.body;
-        const data = await fs.readFile(SETTINGS_FILE, 'utf8');
-        const settings = JSON.parse(data);
+        
+        if (!scheduleSettings.cron) {
+            return res.status(400).json({ error: 'Cron schedule is required' });
+        }
+        
+        let settings = {};
+        try {
+            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
         
         settings.schedule = scheduleSettings;
         await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
@@ -154,6 +233,19 @@ app.post('/api/settings/schedule', async (req, res) => {
 
 app.post('/api/test-email', async (req, res) => {
     try {
+        // Check if email settings exist
+        let settings = {};
+        try {
+            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        if (!settings.email) {
+            return res.status(400).json({ error: 'Email settings not configured' });
+        }
+        
         const testHtml = `
             <h1>Test Email</h1>
             <p>This is a test email from your IR Website News Scraper.</p>
@@ -171,8 +263,33 @@ app.post('/api/test-email', async (req, res) => {
 
 app.post('/api/test-automation', async (req, res) => {
     try {
-        console.log('Manual automation test triggered by user');
+        // Check if email settings exist
+        let settings = {};
+        try {
+            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        if (!settings.email) {
+            return res.status(400).json({ error: 'Email settings not configured' });
+        }
+        
+        // For test automation, always send an email with results
+        const testHtml = `
+            <h1>Test Automation Results</h1>
+            <p>This is a test run of your IR Website News Scraper automation.</p>
+            <p>Timestamp: ${new Date().toLocaleString()}</p>
+            <hr>
+        `;
+        
+        // Run the scraping but always send results
         await scrapeAndEmail();
+        
+        // Also send a test email to confirm the automation ran
+        await sendEmail(testHtml + '<p>Automation test completed successfully!</p>');
+        
         res.status(200).json({ message: 'Automation test completed successfully' });
     } catch (error) {
         console.error('Error in test automation:', error);
@@ -197,10 +314,14 @@ app.use('/', auth, express.static('public'));
 // --- Web Scraping and Emailing Logic ---
 
 async function scrapeAndEmail() {
-    console.log('Starting daily scrape and email job...');
     try {
         const data = await fs.readFile(COMPANIES_FILE, 'utf8');
         const companies = JSON.parse(data);
+        
+        if (!Array.isArray(companies) || companies.length === 0) {
+            console.log('No companies to scrape');
+            return;
+        }
         
         // Load previously sent items to avoid duplicates
         let sentItems = {};
@@ -208,17 +329,15 @@ async function scrapeAndEmail() {
             const sentData = await fs.readFile(SENT_ITEMS_FILE, 'utf8');
             sentItems = JSON.parse(sentData);
         } catch (error) {
-            console.log('No previous sent items found, starting fresh');
+            // No previous sent items found, starting fresh
         }
         
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        console.log(`Today's date: ${today}`);
         let emailBody = '<h1>Daily Investor Relations Update</h1>';
         let hasNewItems = false;
 
         for (const company of companies) {
             try {
-                console.log(`Scraping ${company.name} from ${company.url}`);
                 const { data } = await axios.get(company.url, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -263,10 +382,6 @@ async function scrapeAndEmail() {
                 for (const selector of selectors) {
                     const links = $(selector);
                     if (links.length > 0) {
-                        console.log(`Found ${links.length} links with selector: ${selector}`);
-                        
-                        // Use the main today variable for consistency
-                        
                         // Look for the most recent release (first one)
                         for (let i = 0; i < Math.min(links.length, 3); i++) {
                             const $link = $(links[i]);
@@ -374,9 +489,6 @@ async function scrapeAndEmail() {
                                     const sentDate = sentItems[itemKey];
                                     const isAlreadySentToday = sentDate && sentDate.split('T')[0] === today;
                                     
-                                    console.log(`Checking duplicate: ${itemKey}`);
-                                    console.log(`Sent date: ${sentDate}, Today: ${today}, Already sent: ${isAlreadySentToday}`);
-                                    
                                     if (!isAlreadySentToday) {
                                         newsItems.push({ 
                                             title, 
@@ -388,10 +500,7 @@ async function scrapeAndEmail() {
                                         foundNews = true;
                                         hasNewItems = true;
                                         sentItems[itemKey] = new Date().toISOString();
-                                        console.log(`Found new recent release: ${title} (${publishDate})`);
                                         break; // Only get the most recent one
-                                    } else {
-                                        console.log(`Already sent today: ${title} (${fullUrl})`);
                                     }
                                 }
                             }
@@ -402,9 +511,6 @@ async function scrapeAndEmail() {
                 }
 
                 // If no specific news found, don't force a generic link
-                if (!foundNews) {
-                    console.log(`No recent news found for ${company.name}`);
-                }
 
                 // Add results to email
                 if (foundNews && newsItems.length > 0) {
@@ -423,13 +529,10 @@ async function scrapeAndEmail() {
 
         // Only send email if there are new items
         if (hasNewItems) {
-        await sendEmail(emailBody);
-            console.log('Email sent successfully with new items.');
+            await sendEmail(emailBody);
             
             // Save the sent items to avoid duplicates
             await fs.writeFile(SENT_ITEMS_FILE, JSON.stringify(sentItems, null, 2));
-        } else {
-            console.log('No new items found, skipping email.');
         }
     } catch (error) {
         console.error('Error in scrapeAndEmail:', error);

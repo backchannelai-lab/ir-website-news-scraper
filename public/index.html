@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,36 +5,234 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IR Website News Scraper</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>IR Website News Scraper</h1>
-    <div style="margin-bottom: 20px;">
-        <a href="/settings.html"><button>Settings</button></a>
-        <a href="/api/logout"><button>Logout</button></a>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-title">PR Scraper</div>
+            <ul class="sidebar-nav">
+                <li><a href="/" class="active">PR Scraper</a></li>
+                <li><a href="/api/logout">Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Page Toggle Navigation -->
+            <div class="page-toggle">
+                <button id="dashboard-tab" class="page-tab active">Dashboard</button>
+                <button id="recipients-tab" class="page-tab">Recipients</button>
+                <button id="settings-tab" class="page-tab">Settings</button>
+            </div>
+            
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page-content active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
+                </div>
+                
+                <!-- Company List Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Tracked Companies</h2>
+                        <button id="toggle-add-form" class="btn btn-primary btn-small">Add Company</button>
+                    </div>
+
+                    <form id="add-company-form" class="add-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="company-name">Company Name</label>
+                                <input type="text" id="company-name" placeholder="Enter company name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-ticker">Ticker Symbol</label>
+                                <input type="text" id="company-ticker" placeholder="e.g., AAPL" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-url">Investor Relations URL</label>
+                                <input type="url" id="company-url" placeholder="https://investor.company.com" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-small">Save</button>
+                                <button type="button" id="cancel-add-form" class="btn btn-secondary btn-small">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="company-list" class="company-list">
+                        <div class="company-list-header">
+                            <div class="company-info">
+                                <span class="col-company">Company</span>
+                                <span class="col-ticker">Ticker</span>
+                                <span class="col-url">URL</span>
+                            </div>
+                            <span class="col-action">Action</span>
+                        </div>
+                        <!-- Companies will be dynamically loaded here -->
+                    </div>
+                    <div id="empty-state" class="empty-state">
+                        <h3>No companies added yet</h3>
+                        <p>Add your first company above to start tracking investor relations updates.</p>
+                    </div>
+                </div>
+
+                <!-- Automation Section -->
+                <div class="automation-section">
+                    <h2>Automation Controls</h2>
+                    <div class="automation-controls">
+                        <button id="test-automation-btn" class="btn btn-success">Test Automation Now</button>
+                        <p class="automation-description">
+                            This will run the scraping automation and send emails immediately to test the full workflow.
+                        </p>
+                    </div>
+                    <div id="automation-status" class="status-message"></div>
+                    
+                    <div class="settings-section">
+                        <button id="advanced-settings-btn" class="btn btn-secondary">Advanced Settings</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recipients Page -->
+            <div id="recipients-page" class="page-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Email Recipients</h2>
+                        <button id="toggle-add-recipient" class="btn btn-primary btn-small">Add Recipient</button>
+                    </div>
+                    
+                    <form id="add-recipient-form" class="add-form">
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label for="recipient-name">Name</label>
+                                <input type="text" id="recipient-name" placeholder="Enter recipient name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recipient-email">Email Address</label>
+                                <input type="email" id="recipient-email" placeholder="recipient@example.com" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-small">Save</button>
+                                <button type="button" id="cancel-add-recipient" class="btn btn-secondary btn-small">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="recipients-list" class="company-list">
+                        <div class="company-list-header">
+                            <div class="company-info">
+                                <span class="col-name">Name</span>
+                                <span class="col-email">Email Address</span>
+                            </div>
+                            <span class="col-action">Action</span>
+                        </div>
+                        <!-- Recipients will be dynamically loaded here -->
+                    </div>
+                    <div id="recipients-empty-state" class="empty-state">
+                        <h3>No recipients added yet</h3>
+                        <p>Add your first recipient above to start building your distribution list.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h2 class="settings-modal-title">Settings</h2>
+                <button class="settings-modal-close" id="close-settings-modal">×</button>
+            </div>
+            <div class="settings-modal-body">
+                <div class="form-container">
+                    <h3>Email Configuration</h3>
+                    <p class="text-muted mb-3">Configure your email settings for automated reports</p>
+                    <form id="modal-email-settings-form">
+                        <div class="form-group">
+                            <label for="modal-smtp-host">SMTP Host</label>
+                            <input type="text" id="modal-smtp-host" placeholder="smtp.gmail.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-smtp-port">SMTP Port</label>
+                            <input type="number" id="modal-smtp-port" placeholder="587" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-smtp-user">SMTP Username</label>
+                            <input type="email" id="modal-smtp-user" placeholder="your-email@gmail.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-smtp-pass">SMTP Password</label>
+                            <input type="password" id="modal-smtp-pass" placeholder="Your email password or app password" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-from-name">From Name</label>
+                            <input type="text" id="modal-from-name" placeholder="IR Automation" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-from-email">From Email</label>
+                            <input type="email" id="modal-from-email" placeholder="automation@yourcompany.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-to-emails">Recipients (comma-separated)</label>
+                            <textarea id="modal-to-emails" placeholder="recipient1@example.com, recipient2@example.com" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modal-email-subject">Email Subject</label>
+                            <input type="text" id="modal-email-subject" placeholder="Daily Investor Relations Update" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Email Settings</button>
+                    </form>
+                </div>
+                
+                <div class="form-container">
+                    <h3>Scraping Schedule</h3>
+                    <p class="text-muted mb-3">Set when the automation should run</p>
+                    <form id="modal-schedule-form">
+                        <div class="form-group">
+                            <label for="modal-cron-schedule">Schedule (Cron Format)</label>
+                            <input type="text" id="modal-cron-schedule" placeholder="0 8 * * *" required>
+                            <small class="text-muted">Current: Daily at 8:00 AM. Format: minute hour day month weekday</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Schedule</button>
+                    </form>
+                </div>
+                
+                <div class="automation-section">
+                    <h3>Testing & Validation</h3>
+                    <p class="text-muted mb-3">Test your configuration to ensure everything works properly</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="form-container" style="margin: 0;">
+                            <h4>Test Email</h4>
+                            <p class="text-muted mb-2">Send a test email to verify your configuration</p>
+                            <button id="test-email-btn" class="btn btn-secondary">Send Test Email</button>
+                        </div>
+                        
+                        <div class="form-container" style="margin: 0;">
+                            <h4>Test Automation</h4>
+                            <p class="text-muted mb-2">Run the complete scraping automation</p>
+                            <button id="test-automation-modal-btn" class="btn btn-success">Test Full Automation</button>
+                        </div>
+                    </div>
+                    
+                    <div id="modal-automation-status" class="status-message" style="display: none; margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <h2>Add Company</h2>
-    <form id="add-company-form">
-        <input type="text" id="company-name" placeholder="Company Name" required>
-        <input type="text" id="company-ticker" placeholder="Ticker Symbol (e.g., CY5)" required>
-        <input type="url" id="company-url" placeholder="Investor Relations URL" required>
-        <button type="submit">Add Company</button>
-    </form>
-
-    <h2>Company List</h2>
-    <ul id="company-list"></ul>
-
-    <h2>Automation</h2>
-    <div style="margin: 20px 0;">
-        <button id="test-automation-btn" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-            Test Automation Now
-        </button>
-        <p style="font-size: 12px; color: #666; margin-top: 5px;">
-            This will run the scraping automation and send emails immediately
-        </p>
-    </div>
-
-    <div id="automation-status" style="display: none; padding: 10px; margin: 10px 0; border-radius: 4px;"></div>
 
     <script src="script.js"></script>
 </body>
