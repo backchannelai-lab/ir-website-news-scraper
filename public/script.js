@@ -8,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyNameInput = document.getElementById('company-name');
     const companyTickerInput = document.getElementById('company-ticker');
     const companyUrlInput = document.getElementById('company-url');
-    const advancedSettingsBtn = document.getElementById('advanced-settings-btn');
-    const settingsModal = document.getElementById('settings-modal');
-    const closeSettingsModal = document.getElementById('close-settings-modal');
     
     // Page toggle elements
     const dashboardTab = document.getElementById('dashboard-tab');
@@ -18,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsTab = document.getElementById('settings-tab');
     const dashboardPage = document.getElementById('dashboard-page');
     const recipientsPage = document.getElementById('recipients-page');
+    const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !settingsTab || !dashboardPage || !recipientsPage) {
+    if (!dashboardTab || !recipientsTab || !settingsTab || !dashboardPage || !recipientsPage || !settingsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -249,63 +247,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // Settings Modal functionality
-    advancedSettingsBtn.addEventListener('click', () => {
-        settingsModal.style.display = 'flex';
-        loadModalSettings();
-    });
 
-    closeSettingsModal.addEventListener('click', () => {
-        settingsModal.style.display = 'none';
-    });
-
-    // Close modal when clicking outside
-    settingsModal.addEventListener('click', (e) => {
-        if (e.target === settingsModal) {
-            settingsModal.style.display = 'none';
-        }
-    });
-
-    // Load settings for modal
-    async function loadModalSettings() {
+    // Load settings for page
+    async function loadSettings() {
         try {
             const response = await fetch('/api/settings');
             const settings = await response.json();
             
             // Populate email settings
-            document.getElementById('modal-smtp-host').value = settings.email?.smtpHost || '';
-            document.getElementById('modal-smtp-port').value = settings.email?.smtpPort || '';
-            document.getElementById('modal-smtp-user').value = settings.email?.smtpUser || '';
-            document.getElementById('modal-smtp-pass').value = settings.email?.smtpPass || '';
-            document.getElementById('modal-from-name').value = settings.email?.fromName || '';
-            document.getElementById('modal-from-email').value = settings.email?.fromEmail || '';
-            document.getElementById('modal-to-emails').value = settings.email?.toEmails?.join(', ') || '';
-            document.getElementById('modal-email-subject').value = settings.email?.subject || '';
+            document.getElementById('smtp-host').value = settings.email?.smtpHost || '';
+            document.getElementById('smtp-port').value = settings.email?.smtpPort || '';
+            document.getElementById('smtp-user').value = settings.email?.smtpUser || '';
+            document.getElementById('smtp-pass').value = settings.email?.smtpPass || '';
+            document.getElementById('from-name').value = settings.email?.fromName || '';
+            document.getElementById('from-email').value = settings.email?.fromEmail || '';
+            document.getElementById('to-emails').value = settings.email?.toEmails?.join(', ') || '';
+            document.getElementById('email-subject').value = settings.email?.subject || '';
             
             // Populate schedule settings
-            document.getElementById('modal-cron-schedule').value = settings.schedule?.cron || '0 8 * * *';
+            document.getElementById('cron-schedule').value = settings.schedule?.cron || '0 8 * * *';
         } catch (error) {
             console.error('Error loading settings:', error);
             showNotification('Error loading settings', 'error');
         }
     }
 
-    // Modal form handlers
-    document.getElementById('modal-email-settings-form').addEventListener('submit', async (e) => {
+    // Settings form handlers
+    document.getElementById('email-settings-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const submitBtn = document.querySelector('#modal-email-settings-form button[type="submit"]');
+        const submitBtn = document.querySelector('#email-settings-form button[type="submit"]');
         setButtonLoading(submitBtn, true, 'Saving...');
         
         const emailSettings = {
-            smtpHost: document.getElementById('modal-smtp-host').value.trim(),
-            smtpPort: parseInt(document.getElementById('modal-smtp-port').value),
-            smtpUser: document.getElementById('modal-smtp-user').value.trim(),
-            smtpPass: document.getElementById('modal-smtp-pass').value,
-            fromName: document.getElementById('modal-from-name').value.trim(),
-            fromEmail: document.getElementById('modal-from-email').value.trim(),
-            toEmails: document.getElementById('modal-to-emails').value.split(',').map(email => email.trim()),
-            subject: document.getElementById('modal-email-subject').value.trim()
+            smtpHost: document.getElementById('smtp-host').value.trim(),
+            smtpPort: parseInt(document.getElementById('smtp-port').value),
+            smtpUser: document.getElementById('smtp-user').value.trim(),
+            smtpPass: document.getElementById('smtp-pass').value,
+            fromName: document.getElementById('from-name').value.trim(),
+            fromEmail: document.getElementById('from-email').value.trim(),
+            toEmails: document.getElementById('to-emails').value.split(',').map(email => email.trim()),
+            subject: document.getElementById('email-subject').value.trim()
         };
         
         try {
@@ -330,14 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('modal-schedule-form').addEventListener('submit', async (e) => {
+    document.getElementById('schedule-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const submitBtn = document.querySelector('#modal-schedule-form button[type="submit"]');
+        const submitBtn = document.querySelector('#schedule-form button[type="submit"]');
         setButtonLoading(submitBtn, true, 'Saving...');
         
         const scheduleSettings = {
-            cron: document.getElementById('modal-cron-schedule').value.trim()
+            cron: document.getElementById('cron-schedule').value.trim()
         };
         
         try {
@@ -362,9 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Modal test buttons
-    document.getElementById('modal-test-email-btn').addEventListener('click', async () => {
-        const btn = document.getElementById('modal-test-email-btn');
+    // Settings test buttons
+    document.getElementById('test-email-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('test-email-btn');
         setButtonLoading(btn, true, 'Sending...');
         
         try {
@@ -385,9 +367,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('modal-test-automation-btn').addEventListener('click', async () => {
-        const btn = document.getElementById('modal-test-automation-btn');
-        const statusDiv = document.getElementById('modal-automation-status');
+    document.getElementById('test-automation-settings-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('test-automation-settings-btn');
+        const statusDiv = document.getElementById('settings-automation-status');
         
         setButtonLoading(btn, true, 'Running...');
         statusDiv.style.display = 'block';
@@ -422,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
         [dashboardTab, recipientsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, recipientsPage].forEach(page => {
+        [dashboardPage, recipientsPage, settingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -446,8 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     settingsTab.addEventListener('click', (e) => {
         e.preventDefault();
-        settingsModal.style.display = 'flex';
-        loadModalSettings();
+        showPage(settingsTab, settingsPage);
+        loadSettings();
     });
 
     // Recipients functionality
