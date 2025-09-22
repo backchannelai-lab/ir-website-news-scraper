@@ -524,5 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     getCompanies();
+    getRecipients();
 });
 
