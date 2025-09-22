@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelAddRecipientBtn = document.getElementById('cancel-add-recipient');
     const recipientNameInput = document.getElementById('recipient-name');
     const recipientEmailInput = document.getElementById('recipient-email');
+    
+    // Email template elements
+    const emailTemplateForm = document.getElementById('email-template-form');
+    const toggleTemplateFormBtn = document.getElementById('toggle-template-form');
+    const cancelTemplateFormBtn = document.getElementById('cancel-template-form');
+    const templateSubjectInput = document.getElementById('email-template-subject');
+    const templateBodyInput = document.getElementById('email-template-body');
+    const previewSubject = document.getElementById('preview-subject');
+    const previewBody = document.getElementById('preview-body');
 
     let companies = [];
     let recipients = [];
@@ -522,8 +531,109 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Email template functionality
+    async function getEmailTemplate() {
+        try {
+            const response = await fetch('/api/settings');
+            if (!response.ok) throw new Error('Failed to fetch settings');
+            const settings = await response.json();
+            
+            const template = settings.emailTemplate || {
+                subject: 'Daily Investor Relations Update - {DATE}',
+                body: '<h1>Daily Investor Relations Update</h1>\n<p>Date: {DATE}</p>\n<hr>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>'
+            };
+            
+            templateSubjectInput.value = template.subject;
+            templateBodyInput.value = template.body;
+            updatePreview();
+        } catch (error) {
+            console.error('Error loading email template:', error);
+            showNotification('Error loading email template', 'error');
+        }
+    }
+
+    async function saveEmailTemplate() {
+        try {
+            const template = {
+                subject: templateSubjectInput.value.trim(),
+                body: templateBodyInput.value.trim()
+            };
+            
+            const response = await fetch('/api/settings/email-template', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(template)
+            });
+            
+            if (!response.ok) throw new Error('Failed to save email template');
+            showNotification('Email template saved successfully!', 'success');
+        } catch (error) {
+            console.error('Error saving email template:', error);
+            showNotification('Error saving email template', 'error');
+            throw error;
+        }
+    }
+
+    function updatePreview() {
+        const subject = templateSubjectInput.value || 'Daily Investor Relations Update - {DATE}';
+        const body = templateBodyInput.value || '<h1>Daily Investor Relations Update</h1>\n<p>Date: {DATE}</p>\n<hr>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>';
+        
+        // Replace template variables with sample data for preview
+        const today = new Date().toLocaleDateString();
+        const sampleSubject = subject
+            .replace(/{DATE}/g, today)
+            .replace(/{COMPANY_COUNT}/g, '3');
+            
+        const sampleBody = body
+            .replace(/{DATE}/g, today)
+            .replace(/{COMPANY_NAME}/g, 'Sample Company')
+            .replace(/{TICKER}/g, 'SAMP')
+            .replace(/{TITLE}/g, 'Sample Press Release Title')
+            .replace(/{URL}/g, '#')
+            .replace(/{PUBLISH_DATE}/g, today);
+        
+        previewSubject.textContent = sampleSubject;
+        previewBody.innerHTML = sampleBody;
+    }
+
+    // Email template form handlers
+    toggleTemplateFormBtn.addEventListener('click', () => {
+        toggleForm(emailTemplateForm, toggleTemplateFormBtn);
+    });
+
+    cancelTemplateFormBtn.addEventListener('click', () => {
+        emailTemplateForm.style.display = 'none';
+        toggleTemplateFormBtn.style.display = 'block';
+        emailTemplateForm.reset();
+        getEmailTemplate(); // Reset to saved template
+    });
+
+    emailTemplateForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = emailTemplateForm.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Saving...');
+        
+        try {
+            await saveEmailTemplate();
+            emailTemplateForm.style.display = 'none';
+            toggleTemplateFormBtn.style.display = 'block';
+        } catch (error) {
+            // Error already handled in saveEmailTemplate
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
+
+    // Update preview when template changes
+    templateSubjectInput.addEventListener('input', updatePreview);
+    templateBodyInput.addEventListener('input', updatePreview);
+
     // Initial load
     getCompanies();
     getRecipients();
+    getEmailTemplate();
 });
 

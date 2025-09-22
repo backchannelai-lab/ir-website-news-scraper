@@ -231,6 +231,32 @@ app.post('/api/settings/schedule', async (req, res) => {
     }
 });
 
+app.post('/api/settings/email-template', async (req, res) => {
+    try {
+        const emailTemplate = req.body;
+        
+        if (!emailTemplate.subject || !emailTemplate.body) {
+            return res.status(400).json({ error: 'Subject and body are required' });
+        }
+        
+        let settings = {};
+        try {
+            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        settings.emailTemplate = emailTemplate;
+        await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+        
+        res.status(200).json({ message: 'Email template saved successfully' });
+    } catch (error) {
+        console.error('Error saving email template:', error);
+        res.status(500).json({ error: 'Error saving email template' });
+    }
+});
+
 app.post('/api/test-email', async (req, res) => {
     try {
         // Check if email settings exist
@@ -333,8 +359,26 @@ async function scrapeAndEmail() {
         }
         
         const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        let emailBody = '<h1>Daily Investor Relations Update</h1>';
         let hasNewItems = false;
+        
+        // Load email template
+        let emailTemplate = {
+            subject: 'Daily Investor Relations Update - {DATE}',
+            body: '<h1>Daily Investor Relations Update</h1>\n<p>Date: {DATE}</p>\n<hr>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>'
+        };
+        
+        try {
+            const settingsData = await fs.readFile(SETTINGS_FILE, 'utf8');
+            const settings = JSON.parse(settingsData);
+            if (settings.emailTemplate) {
+                emailTemplate = settings.emailTemplate;
+            }
+        } catch (error) {
+            // Use default template if settings not found
+        }
+        
+        let emailBody = emailTemplate.body;
+        let emailSubject = emailTemplate.subject;
 
         for (const company of companies) {
             try {
@@ -515,21 +559,47 @@ async function scrapeAndEmail() {
                 // Add results to email
                 if (foundNews && newsItems.length > 0) {
                     newsItems.forEach(item => {
-                        emailBody += `<p><strong>${item.company} (${item.ticker})</strong> - <a href="${item.url}" target="_blank">${item.title}</a> - ${item.publishDate}</p>`;
+                        const itemHtml = emailTemplate.body
+                            .replace(/{COMPANY_NAME}/g, item.company)
+                            .replace(/{TICKER}/g, item.ticker)
+                            .replace(/{TITLE}/g, item.title)
+                            .replace(/{URL}/g, item.url)
+                            .replace(/{PUBLISH_DATE}/g, item.publishDate)
+                            .replace(/{DATE}/g, today);
+                        emailBody += itemHtml;
                     });
                 } else {
-                    emailBody += `<p><strong>${company.name} (${company.ticker || 'N/A'})</strong> - No new announcements found</p>`;
+                    const noNewsHtml = emailTemplate.body
+                        .replace(/{COMPANY_NAME}/g, company.name)
+                        .replace(/{TICKER}/g, company.ticker || 'N/A')
+                        .replace(/{TITLE}/g, 'No new announcements found')
+                        .replace(/{URL}/g, '#')
+                        .replace(/{PUBLISH_DATE}/g, 'N/A')
+                        .replace(/{DATE}/g, today);
+                    emailBody += noNewsHtml;
                 }
                 
             } catch (error) {
                 console.error(`Error scraping ${company.name}:`, error);
-                emailBody += `<p><strong>${company.name} (${company.ticker || 'N/A'})</strong> - <span style="color: #d63031;">Error: ${error.message}</span></p>`;
+                const errorHtml = emailTemplate.body
+                    .replace(/{COMPANY_NAME}/g, company.name)
+                    .replace(/{TICKER}/g, company.ticker || 'N/A')
+                    .replace(/{TITLE}/g, `<span style="color: #d63031;">Error: ${error.message}</span>`)
+                    .replace(/{URL}/g, '#')
+                    .replace(/{PUBLISH_DATE}/g, 'N/A')
+                    .replace(/{DATE}/g, today);
+                emailBody += errorHtml;
             }
         }
 
         // Only send email if there are new items
         if (hasNewItems) {
-            await sendEmail(emailBody);
+            // Replace template variables in subject
+            const finalSubject = emailSubject
+                .replace(/{DATE}/g, today)
+                .replace(/{COMPANY_COUNT}/g, companies.length.toString());
+            
+            await sendEmail(emailBody, finalSubject);
             
             // Save the sent items to avoid duplicates
             await fs.writeFile(SENT_ITEMS_FILE, JSON.stringify(sentItems, null, 2));
@@ -539,7 +609,7 @@ async function scrapeAndEmail() {
     }
 }
 
-async function sendEmail(html) {
+async function sendEmail(html, customSubject = null) {
     try {
         // Load settings from file
         const data = await fs.readFile(SETTINGS_FILE, 'utf8');
@@ -559,7 +629,7 @@ async function sendEmail(html) {
     const mailOptions = {
             from: `"${emailConfig.fromName}" <${emailConfig.fromEmail}>`,
             to: emailConfig.toEmails.join(', '),
-            subject: emailConfig.subject,
+            subject: customSubject || emailConfig.subject,
         html: html
     };
 

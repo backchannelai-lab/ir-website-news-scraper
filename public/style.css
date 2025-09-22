@@ -1398,3 +1398,66 @@ input[type="text"], input[type="email"], input[type="url"], input[type="password
 .settings-modal-body {
     padding: 30px;
 }
+
+/* Email template styles */
+.template-preview {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.preview-container {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.preview-subject {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.9rem;
+}
+
+.preview-body {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.preview-body h1, .preview-body h2, .preview-body h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.preview-body p {
+    margin-bottom: 0.5rem;
+}
+
+.preview-body hr {
+    margin: 1rem 0;
+    border: none;
+    border-top: 1px solid #dee2e6;
+}
+
+.preview-body a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.preview-body a:hover {
+    text-decoration: underline;
+}
+
+/* Template field highlighting */
+.template-field {
+    background: #fff3cd;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}

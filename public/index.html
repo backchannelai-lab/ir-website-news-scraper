@@ -80,6 +80,48 @@
                     </div>
                 </div>
 
+                <!-- Email Template Section -->
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Email Template</h2>
+                        <button id="toggle-template-form" class="btn btn-primary btn-small">Customize Template</button>
+                    </div>
+                    
+                    <form id="email-template-form" class="add-form">
+                        <div class="form-group">
+                            <label for="email-template-subject">Email Subject Template</label>
+                            <input type="text" id="email-template-subject" placeholder="Daily Investor Relations Update - {DATE}" required>
+                            <small class="text-muted">Available fields: {DATE}, {COMPANY_COUNT}</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email-template-body">Email Body Template</label>
+                            <textarea id="email-template-body" rows="12" placeholder="Enter your email template here..." required></textarea>
+                            <small class="text-muted">Available fields: {DATE}, {COMPANY_NAME}, {TICKER}, {TITLE}, {URL}, {PUBLISH_DATE}</small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-small">Save Template</button>
+                            <button type="button" id="cancel-template-form" class="btn btn-secondary btn-small">Cancel</button>
+                        </div>
+                    </form>
+                    
+                    <div class="template-preview">
+                        <h3>Template Preview</h3>
+                        <div class="preview-container">
+                            <div class="preview-subject">
+                                <strong>Subject:</strong> <span id="preview-subject">Daily Investor Relations Update - {DATE}</span>
+                            </div>
+                            <div class="preview-body" id="preview-body">
+                                <p><strong>Daily Investor Relations Update</strong></p>
+                                <p>Date: {DATE}</p>
+                                <hr>
+                                <p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             
             <!-- Recipients Page -->
