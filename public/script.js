@@ -211,40 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Test automation functionality
-    const testAutomationBtn = document.getElementById('test-automation-btn');
-    const automationStatus = document.getElementById('automation-status');
-
-    testAutomationBtn.addEventListener('click', async () => {
-        setButtonLoading(testAutomationBtn, true, 'Running...');
-        
-        automationStatus.style.display = 'block';
-        automationStatus.className = 'status-message status-info';
-        automationStatus.textContent = 'Running automation test...';
-
-        try {
-            const response = await fetch('/api/test-automation', {
-                method: 'POST'
-            });
-
-            if (response.ok) {
-                automationStatus.className = 'status-message status-success';
-                automationStatus.textContent = 'Automation test completed successfully! Check your email.';
-                showNotification('Automation test completed! Check your email for results.', 'success');
-            } else {
-                automationStatus.className = 'status-message status-error';
-                automationStatus.textContent = 'Error running automation test.';
-                showNotification('Automation test failed. Please check your settings.', 'error');
-            }
-        } catch (error) {
-            console.error('Error testing automation:', error);
-            automationStatus.className = 'status-message status-error';
-            automationStatus.textContent = 'Error running automation test.';
-            showNotification('Network error during automation test.', 'error');
-        } finally {
-            setButtonLoading(testAutomationBtn, false);
-        }
-    });
 
 
 
