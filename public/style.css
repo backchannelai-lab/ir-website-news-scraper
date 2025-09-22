@@ -1460,4 +1460,199 @@ input[type="text"], input[type="email"], input[type="url"], input[type="password
     font-size: 0.85em;
     color: #856404;
     border: 1px solid #ffeaa7;
+    display: inline-block;
+    margin: 0 2px;
+}
+
+/* WYSIWYG Editor Styles */
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    flex-wrap: wrap;
+}
+
+.editor-btn {
+    background: white;
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 36px;
+    justify-content: center;
+}
+
+.editor-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.editor-btn:active,
+.editor-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.editor-separator {
+    width: 1px;
+    height: 24px;
+    background: #dee2e6;
+    margin: 0 4px;
+}
+
+.editor-select {
+    background: white;
+    border: 1px solid #dee2e6;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #495057;
+    cursor: pointer;
+    min-width: 80px;
+}
+
+.editor-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.editor-content {
+    min-height: 200px;
+    padding: 16px;
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    background: white;
+    font-size: 16px;
+    line-height: 1.5;
+    outline: none;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.editor-content:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.editor-content:empty:before {
+    content: attr(data-placeholder);
+    color: #6c757d;
+    font-style: italic;
+    pointer-events: none;
+}
+
+.template-fields {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.field-btn {
+    background: #e9ecef;
+    border: 1px solid #dee2e6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.field-btn:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* Editor content styling */
+.editor-content h1,
+.editor-content h2,
+.editor-content h3,
+.editor-content h4,
+.editor-content h5,
+.editor-content h6 {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+.editor-content p {
+    margin: 0 0 8px 0;
+}
+
+.editor-content ul,
+.editor-content ol {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+}
+
+.editor-content li {
+    margin: 4px 0;
+}
+
+.editor-content a {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+.editor-content hr {
+    border: none;
+    border-top: 1px solid #dee2e6;
+    margin: 16px 0;
+}
+
+.editor-content strong {
+    font-weight: 600;
+}
+
+.editor-content em {
+    font-style: italic;
+}
+
+.editor-content u {
+    text-decoration: underline;
+}
+
+/* Responsive editor */
+@media (max-width: 768px) {
+    .editor-toolbar {
+        gap: 4px;
+        padding: 8px;
+    }
+    
+    .editor-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+        min-width: 32px;
+    }
+    
+    .editor-select {
+        padding: 4px 6px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+    
+    .template-fields {
+        gap: 4px;
+    }
+    
+    .field-btn {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
 }

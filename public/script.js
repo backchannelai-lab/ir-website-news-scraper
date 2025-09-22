@@ -39,6 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const templateBodyInput = document.getElementById('email-template-body');
     const previewSubject = document.getElementById('preview-subject');
     const previewBody = document.getElementById('preview-body');
+    const fontSizeSelect = document.getElementById('font-size-select');
+    const fontFamilySelect = document.getElementById('font-family-select');
+    const insertFieldBtn = document.getElementById('insert-field-btn');
+    const fieldBtns = document.querySelectorAll('.field-btn');
 
     let companies = [];
     let recipients = [];
@@ -544,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             templateSubjectInput.value = template.subject;
-            templateBodyInput.value = template.body;
+            templateBodyInput.innerHTML = template.body;
             updatePreview();
         } catch (error) {
             console.error('Error loading email template:', error);
@@ -556,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const template = {
                 subject: templateSubjectInput.value.trim(),
-                body: templateBodyInput.value.trim()
+                body: templateBodyInput.innerHTML.trim()
             };
             
             const response = await fetch('/api/settings/email-template', {
@@ -578,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePreview() {
         const subject = templateSubjectInput.value || 'Daily Investor Relations Update - {DATE}';
-        const body = templateBodyInput.value || '<h1>Daily Investor Relations Update</h1>\n<p>Date: {DATE}</p>\n<hr>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>';
+        const body = templateBodyInput.innerHTML || '<h1>Daily Investor Relations Update</h1>\n<p>Date: {DATE}</p>\n<hr>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href="{URL}" target="_blank">{TITLE}</a> - {PUBLISH_DATE}</p>';
         
         // Replace template variables with sample data for preview
         const today = new Date().toLocaleDateString();
@@ -624,6 +628,81 @@ document.addEventListener('DOMContentLoaded', () => {
             // Error already handled in saveEmailTemplate
         } finally {
             setButtonLoading(submitBtn, false);
+        }
+    });
+
+    // WYSIWYG Editor functionality
+    function execCommand(command, value = null) {
+        document.execCommand(command, false, value);
+        templateBodyInput.focus();
+        updatePreview();
+    }
+
+    function insertField(field) {
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            const fieldElement = document.createElement('span');
+            fieldElement.className = 'template-field';
+            fieldElement.textContent = field;
+            fieldElement.contentEditable = 'false';
+            range.deleteContents();
+            range.insertNode(fieldElement);
+            range.setStartAfter(fieldElement);
+            range.setEndAfter(fieldElement);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        } else {
+            templateBodyInput.innerHTML += `<span class="template-field" contenteditable="false">${field}</span>`;
+        }
+        updatePreview();
+    }
+
+    // Editor toolbar event listeners
+    document.querySelectorAll('.editor-btn[data-command]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const command = btn.dataset.command;
+            if (command === 'createLink') {
+                const url = prompt('Enter URL:');
+                if (url) execCommand(command, url);
+            } else {
+                execCommand(command);
+            }
+        });
+    });
+
+    // Font size and family changes
+    fontSizeSelect.addEventListener('change', () => {
+        execCommand('fontSize', fontSizeSelect.value);
+    });
+
+    fontFamilySelect.addEventListener('change', () => {
+        execCommand('fontName', fontFamilySelect.value);
+    });
+
+    // Field insertion buttons
+    fieldBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            insertField(btn.dataset.field);
+        });
+    });
+
+    insertFieldBtn.addEventListener('click', () => {
+        const field = prompt('Enter field name (e.g., {DATE}, {COMPANY_NAME}):');
+        if (field) insertField(field);
+    });
+
+    // Placeholder functionality
+    templateBodyInput.addEventListener('focus', () => {
+        if (templateBodyInput.textContent.trim() === '') {
+            templateBodyInput.innerHTML = '';
+        }
+    });
+
+    templateBodyInput.addEventListener('blur', () => {
+        if (templateBodyInput.textContent.trim() === '') {
+            templateBodyInput.innerHTML = '<p><br></p>';
         }
     });
 

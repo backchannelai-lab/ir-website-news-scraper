@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IR Website News Scraper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,8 +97,61 @@
                         
                         <div class="form-group">
                             <label for="email-template-body">Email Body Template</label>
-                            <textarea id="email-template-body" rows="12" placeholder="Enter your email template here..." required></textarea>
-                            <small class="text-muted">Available fields: {DATE}, {COMPANY_NAME}, {TICKER}, {TITLE}, {URL}, {PUBLISH_DATE}</small>
+                            <div class="editor-toolbar">
+                                <button type="button" class="editor-btn" data-command="bold" title="Bold">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="italic" title="Italic">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="underline" title="Underline">
+                                    <i class="fas fa-underline"></i>
+                                </button>
+                                <div class="editor-separator"></div>
+                                <select class="editor-select" id="font-size-select" title="Font Size">
+                                    <option value="12px">12px</option>
+                                    <option value="14px">14px</option>
+                                    <option value="16px" selected>16px</option>
+                                    <option value="18px">18px</option>
+                                    <option value="20px">20px</option>
+                                    <option value="24px">24px</option>
+                                </select>
+                                <select class="editor-select" id="font-family-select" title="Font Family">
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="Helvetica, sans-serif">Helvetica</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="Times New Roman, serif">Times New Roman</option>
+                                    <option value="Verdana, sans-serif">Verdana</option>
+                                </select>
+                                <div class="editor-separator"></div>
+                                <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Bullet List">
+                                    <i class="fas fa-list-ul"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertOrderedList" title="Numbered List">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                                <div class="editor-separator"></div>
+                                <button type="button" class="editor-btn" data-command="createLink" title="Insert Link">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                                <button type="button" class="editor-btn" data-command="insertHorizontalRule" title="Insert Line">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <div class="editor-separator"></div>
+                                <button type="button" class="editor-btn" id="insert-field-btn" title="Insert Field">
+                                    <i class="fas fa-code"></i> Insert Field
+                                </button>
+                            </div>
+                            <div id="email-template-body" class="editor-content" contenteditable="true" data-placeholder="Click here to start typing your email template..."></div>
+                            <div class="template-fields">
+                                <small class="text-muted">Available fields: </small>
+                                <button type="button" class="field-btn" data-field="{DATE}">Date</button>
+                                <button type="button" class="field-btn" data-field="{COMPANY_NAME}">Company Name</button>
+                                <button type="button" class="field-btn" data-field="{TICKER}">Ticker</button>
+                                <button type="button" class="field-btn" data-field="{TITLE}">Title</button>
+                                <button type="button" class="field-btn" data-field="{URL}">URL</button>
+                                <button type="button" class="field-btn" data-field="{PUBLISH_DATE}">Publish Date</button>
+                            </div>
                         </div>
                         
                         <div class="form-actions">
