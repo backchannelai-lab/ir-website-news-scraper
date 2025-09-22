@@ -563,6 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: templateBodyInput.innerHTML.trim()
             };
             
+            console.log('Saving template:', template);
+            
             const response = await fetch('/api/settings/email-template', {
                 method: 'POST',
                 headers: {
@@ -571,7 +573,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(template)
             });
             
-            if (!response.ok) throw new Error('Failed to save email template');
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server error:', errorText);
+                throw new Error(`Failed to save email template: ${errorText}`);
+            }
+            
             showNotification('Email template saved successfully!', 'success');
         } catch (error) {
             console.error('Error saving email template:', error);
@@ -616,15 +625,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     emailTemplateForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Form submit triggered');
+        
+        // Check if template body has content
+        if (templateBodyInput.textContent.trim() === '') {
+            showNotification('Please enter email template content', 'error');
+            return;
+        }
         
         const submitBtn = emailTemplateForm.querySelector('button[type="submit"]');
+        console.log('Submit button found:', submitBtn);
         setButtonLoading(submitBtn, true, 'Saving...');
         
         try {
+            console.log('Calling saveEmailTemplate');
             await saveEmailTemplate();
+            console.log('Template saved successfully');
             emailTemplateForm.style.display = 'none';
             toggleTemplateFormBtn.style.display = 'block';
         } catch (error) {
+            console.error('Error saving template:', error);
             // Error already handled in saveEmailTemplate
         } finally {
             setButtonLoading(submitBtn, false);
@@ -674,7 +694,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Font size and family changes
     fontSizeSelect.addEventListener('change', () => {
-        execCommand('fontSize', fontSizeSelect.value);
+        const size = fontSizeSelect.value;
+        execCommand('styleWithCSS', 'true');
+        execCommand('fontSize', '7');
+        // Apply custom font size via CSS
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            if (!range.collapsed) {
+                const span = document.createElement('span');
+                span.style.fontSize = size;
+                try {
+                    range.surroundContents(span);
+                } catch (e) {
+                    // If surroundContents fails, insert the span
+                    range.deleteContents();
+                    range.insertNode(span);
+                }
+            } else {
+                // If no selection, insert at cursor
+                const span = document.createElement('span');
+                span.style.fontSize = size;
+                span.innerHTML = '&nbsp;';
+                range.insertNode(span);
+                range.setStartAfter(span);
+                range.setEndAfter(span);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        }
+        updatePreview();
     });
 
     fontFamilySelect.addEventListener('change', () => {
