@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Section elements
     const prScraperSection = document.getElementById('pr-scraper-section');
     const blogsSection = document.getElementById('blogs-section');
-    const backToPrScraperBtn = document.getElementById('back-to-pr-scraper');
     
     // Blogs sub-navigation elements
     const blogsDashboardTab = document.getElementById('blogs-dashboard-tab');
@@ -654,13 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         showPrScraperPage(emailSettingsTab, emailSettingsPage);
         loadSettings();
-    });
-
-    // Back to PR Scraper button
-    backToPrScraperBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        showSection(prScraperSection);
-        updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
     });
 
     // Blogs sub-navigation event listeners
