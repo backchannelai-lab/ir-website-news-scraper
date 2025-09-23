@@ -251,8 +251,15 @@
                     <button id="back-to-pr-scraper" class="btn btn-secondary btn-small">← Back to PR Scraper</button>
                     <h1>Recommended Blogs</h1>
                 </div>
-                <!-- Recommended Blogs Page -->
-                <div id="blogs-page" class="page-content active">
+                
+                <!-- Blogs Sub-Navigation -->
+                <div id="blogs-nav" class="page-toggle">
+                    <button id="blogs-dashboard-tab" class="page-tab active">Dashboard</button>
+                    <button id="blog-settings-tab" class="page-tab">Blog Settings</button>
+                </div>
+                
+                <!-- Blogs Dashboard Page -->
+                <div id="blogs-dashboard-page" class="page-content active">
                 <div class="section">
                     <div class="section-header">
                         <h2>Recommended Blogs</h2>
@@ -286,9 +293,11 @@
                         <p>Add your first recommended blog above to start building your collection.</p>
                     </div>
                 </div>
+                </div>
                 
-                <!-- Blog Settings Section -->
-                <div class="section">
+                <!-- Blog Settings Page -->
+                <div id="blog-settings-page" class="page-content">
+                    <div class="section">
                     <h2>Blog Suggestion Configuration</h2>
                     <p class="text-muted mb-3">Customize the AI prompt used to generate blog suggestions for your clients</p>
                     <form id="blog-prompt-form">
@@ -321,7 +330,7 @@ Make the descriptions specific to the client's tracked companies and industry fo
                         
                         <button type="submit" class="btn btn-primary">Save Blog Prompt</button>
                     </form>
-                </div>
+                    </div>
                 </div>
             </div>
             

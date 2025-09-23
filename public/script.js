@@ -20,11 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Section elements
     const prScraperSection = document.getElementById('pr-scraper-section');
     const blogsSection = document.getElementById('blogs-section');
-    const blogsPage = document.getElementById('blogs-page');
     const backToPrScraperBtn = document.getElementById('back-to-pr-scraper');
     
+    // Blogs sub-navigation elements
+    const blogsDashboardTab = document.getElementById('blogs-dashboard-tab');
+    const blogSettingsTab = document.getElementById('blog-settings-tab');
+    const blogsDashboardPage = document.getElementById('blogs-dashboard-page');
+    const blogSettingsPage = document.getElementById('blog-settings-page');
+    
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !emailSettingsTab || !dashboardPage || !recipientsPage || !emailSettingsPage || !blogsSection || !blogsPage) {
+    if (!dashboardTab || !recipientsTab || !emailSettingsTab || !dashboardPage || !recipientsPage || !emailSettingsPage || !blogsSection || !blogsDashboardTab || !blogSettingsTab || !blogsDashboardPage || !blogSettingsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -605,6 +610,21 @@ document.addEventListener('DOMContentLoaded', () => {
         section.style.display = 'block';
     }
 
+    // Blogs sub-navigation functionality
+    function showBlogsPage(activeTab, activePage) {
+        // Remove active class from all blogs tabs and pages
+        [blogsDashboardTab, blogSettingsTab].forEach(tab => tab.classList.remove('active'));
+        [blogsDashboardPage, blogSettingsPage].forEach(page => {
+            page.classList.remove('active');
+            page.style.display = 'none';
+        });
+        
+        // Show selected page
+        activeTab.classList.add('active');
+        activePage.classList.add('active');
+        activePage.style.display = 'block';
+    }
+
     // Sidebar navigation functionality
     function updateSidebarActive(activeItem) {
         // Remove active class from all sidebar items
@@ -641,6 +661,19 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         showSection(prScraperSection);
         updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
+    });
+
+    // Blogs sub-navigation event listeners
+    blogsDashboardTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showBlogsPage(blogsDashboardTab, blogsDashboardPage);
+        getBlogs(); // Load blogs when switching to dashboard
+    });
+
+    blogSettingsTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showBlogsPage(blogSettingsTab, blogSettingsPage);
+        loadBlogPrompt(); // Load blog prompt settings
     });
 
     // Blog prompt form functionality
@@ -1254,9 +1287,9 @@ Make the descriptions specific to the client's tracked companies and industry fo
     document.getElementById('blogs-tab').addEventListener('click', (e) => {
         e.preventDefault();
         showSection(blogsSection);
+        showBlogsPage(blogsDashboardTab, blogsDashboardPage);
         updateSidebarActive(e.target);
         getBlogs(); // Load blogs when switching to this page
-        loadBlogPrompt(); // Load blog prompt settings
     });
 
     // Initial load
