@@ -11,14 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Page toggle elements
     const dashboardTab = document.getElementById('dashboard-tab');
+    const recipientsTab = document.getElementById('recipients-tab');
     const blogsTab = document.getElementById('blogs-tab-main');
     const settingsTab = document.getElementById('settings-tab');
     const dashboardPage = document.getElementById('dashboard-page');
+    const recipientsPage = document.getElementById('recipients-page');
     const blogsPage = document.getElementById('blogs-page');
     const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!dashboardTab || !blogsTab || !settingsTab || !dashboardPage || !blogsPage || !settingsPage) {
+    if (!dashboardTab || !recipientsTab || !blogsTab || !settingsTab || !dashboardPage || !recipientsPage || !blogsPage || !settingsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -26,6 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Blog prompt form element
     const blogPromptForm = document.getElementById('blog-prompt-form');
     const blogPromptTextarea = document.getElementById('blog-prompt');
+    
+    // Recipients elements
+    const recipientsList = document.getElementById('recipients-list');
+    const addRecipientForm = document.getElementById('add-recipient-form');
+    const toggleAddRecipientBtn = document.getElementById('toggle-add-recipient');
+    const cancelAddRecipientBtn = document.getElementById('cancel-add-recipient');
+    const recipientNameInput = document.getElementById('recipient-name');
+    const recipientEmailInput = document.getElementById('recipient-email');
     
     // Blogs elements
     const blogsList = document.getElementById('blogs-list');
@@ -161,14 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentClientId) {
             // Clear all data when no client is selected
             companies = [];
+            recipients = [];
             blogs = [];
             renderCompanies();
+            renderRecipients();
             renderBlogs();
             return;
         }
         
         // Load client-specific data
         await getCompanies();
+        await getRecipients();
         await getBlogs();
         await loadSettings();
         await getEmailTemplate();
@@ -546,8 +559,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle functionality
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
-        [dashboardTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, blogsPage, settingsPage].forEach(page => {
+        [dashboardTab, recipientsTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
+        [dashboardPage, recipientsPage, blogsPage, settingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -575,6 +588,13 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         showPage(dashboardTab, dashboardPage);
         updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
+    });
+
+    recipientsTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(recipientsTab, recipientsPage);
+        updateSidebarActive(null); // Clear sidebar highlighting since there's no recipients sidebar item
+        getRecipients(); // Load recipients when switching to this page
     });
 
     blogsTab.addEventListener('click', (e) => {
@@ -667,6 +687,130 @@ Make the descriptions specific to the client's tracked companies and industry fo
             setButtonLoading(submitBtn, false);
         }
     });
+
+    // Recipients functionality
+    async function getRecipients() {
+        try {
+            const response = await fetch('/api/recipients');
+            if (!response.ok) throw new Error('Failed to fetch recipients');
+            recipients = await response.json();
+            renderRecipients();
+        } catch (error) {
+            console.error('Error fetching recipients:', error);
+            showNotification('Error loading recipients', 'error');
+        }
+    }
+
+    function renderRecipients() {
+        // Keep the header row and clear only the recipient rows
+        const existingHeader = recipientsList.querySelector('.company-list-header');
+        const existingRecipients = recipientsList.querySelectorAll('.company-card');
+        existingRecipients.forEach(card => card.remove());
+        
+        if (recipients.length === 0) {
+            document.getElementById('recipients-empty-state').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('recipients-empty-state').style.display = 'none';
+        
+        recipients.forEach((recipient, index) => {
+            const recipientCard = document.createElement('div');
+            recipientCard.className = 'company-card';
+            recipientCard.innerHTML = `
+                <div class="company-info">
+                    <span class="company-name">${recipient.name}</span>
+                    <span class="company-url">${recipient.email}</span>
+                </div>
+                <div class="company-actions">
+                    <button class="delete-btn" data-index="${index}" title="Remove recipient">
+                        ×
+                    </button>
+                </div>
+            `;
+            recipientsList.appendChild(recipientCard);
+        });
+    }
+
+    // Toggle add recipient form
+    toggleAddRecipientBtn.addEventListener('click', () => {
+        toggleForm(addRecipientForm, toggleAddRecipientBtn);
+    });
+
+    // Cancel add recipient form
+    cancelAddRecipientBtn.addEventListener('click', () => {
+        addRecipientForm.style.display = 'none';
+        toggleAddRecipientBtn.style.display = 'block';
+        addRecipientForm.reset();
+    });
+
+    // Add a new recipient
+    addRecipientForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = addRecipientForm.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Adding...');
+        
+        try {
+            const newRecipient = {
+                name: recipientNameInput.value.trim(),
+                email: recipientEmailInput.value.trim()
+            };
+            
+            recipients.push(newRecipient);
+            await saveRecipients();
+            renderRecipients();
+            addRecipientForm.reset();
+            
+            // Hide form and show button
+            addRecipientForm.style.display = 'none';
+            toggleAddRecipientBtn.style.display = 'block';
+            
+            showNotification('Recipient added successfully!', 'success');
+        } catch (error) {
+            console.error('Error adding recipient:', error);
+            showNotification('Error adding recipient. Please try again.', 'error');
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
+
+    // Delete a recipient
+    recipientsList.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            const index = e.target.dataset.index;
+            const recipientName = recipients[index].name;
+            
+            if (confirm(`Are you sure you want to remove ${recipientName} from the recipient list?`)) {
+                try {
+                    recipients.splice(index, 1);
+                    await saveRecipients();
+                    renderRecipients();
+                    showNotification(`${recipientName} removed successfully!`, 'success');
+                } catch (error) {
+                    console.error('Error deleting recipient:', error);
+                    showNotification('Error removing recipient. Please try again.', 'error');
+                }
+            }
+        }
+    });
+
+    // Save recipients to the server
+    async function saveRecipients() {
+        try {
+            const response = await fetch('/api/recipients', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(recipients)
+            });
+            if (!response.ok) throw new Error('Failed to save recipients');
+        } catch (error) {
+            console.error('Error saving recipients:', error);
+            throw error;
+        }
+    }
 
     // Blogs functionality
     async function getBlogs() {
