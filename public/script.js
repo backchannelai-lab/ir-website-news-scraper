@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Client Management Elements
     const clientSelect = document.getElementById('client-select');
     const addClientBtn = document.getElementById('add-client-btn');
+    const blogsClientSelect = document.getElementById('blogs-client-select');
+    const addBlogsClientBtn = document.getElementById('add-blogs-client-btn');
     const clientModal = document.getElementById('client-modal');
     const clientForm = document.getElementById('client-form');
     const clientNameInput = document.getElementById('client-name');
@@ -143,18 +145,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderClientSelect() {
+        // Clear both dropdowns
         clientSelect.innerHTML = '<option value="">Select a client...</option>';
+        blogsClientSelect.innerHTML = '<option value="">Select a client...</option>';
+        
+        // Populate both dropdowns
         clients.forEach(client => {
-            const option = document.createElement('option');
-            option.value = client.id;
-            option.textContent = client.name;
-            clientSelect.appendChild(option);
+            const option1 = document.createElement('option');
+            option1.value = client.id;
+            option1.textContent = client.name;
+            clientSelect.appendChild(option1);
+            
+            const option2 = document.createElement('option');
+            option2.value = client.id;
+            option2.textContent = client.name;
+            blogsClientSelect.appendChild(option2);
         });
         
         // Restore selected client from localStorage
         const savedClientId = localStorage.getItem('currentClientId');
         if (savedClientId && clients.find(c => c.id === savedClientId)) {
             clientSelect.value = savedClientId;
+            blogsClientSelect.value = savedClientId;
             currentClientId = savedClientId;
             loadClientData();
         }
@@ -164,6 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentClientId = clientId;
         localStorage.setItem('currentClientId', clientId);
         loadClientData();
+        
+        // Update both dropdowns to reflect the current selection
+        clientSelect.value = clientId;
+        blogsClientSelect.value = clientId;
         
         if (clientId) {
             const client = clients.find(c => c.id === clientId);
@@ -241,6 +257,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addClientBtn.addEventListener('click', openClientModal);
+
+    // Blogs client selection event listeners
+    blogsClientSelect.addEventListener('change', (e) => {
+        switchClient(e.target.value);
+    });
+
+    addBlogsClientBtn.addEventListener('click', openClientModal);
 
     clientForm.addEventListener('submit', async (e) => {
         e.preventDefault();
