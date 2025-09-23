@@ -554,15 +554,30 @@ document.addEventListener('DOMContentLoaded', () => {
         activePage.style.display = 'block';
     }
 
+    // Sidebar navigation functionality
+    function updateSidebarActive(activeItem) {
+        // Remove active class from all sidebar items
+        document.querySelectorAll('.sidebar-nav a').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Add active class to the selected item
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
+    }
+
     blogsTab.addEventListener('click', (e) => {
         e.preventDefault();
         showPage(blogsTab, blogsPage);
+        updateSidebarActive(document.getElementById('blogs-tab'));
         getBlogs(); // Load blogs when switching to this page
     });
 
     settingsTab.addEventListener('click', (e) => {
         e.preventDefault();
         showPage(settingsTab, settingsPage);
+        updateSidebarActive(null); // Clear sidebar highlighting since there's no settings sidebar item
         loadSettings();
     });
 
@@ -1045,10 +1060,14 @@ Make the descriptions specific to the client's tracked companies and industry fo
     document.getElementById('blogs-tab').addEventListener('click', (e) => {
         e.preventDefault();
         showPage(blogsTab, blogsPage);
+        updateSidebarActive(e.target);
         getBlogs(); // Load blogs when switching to this page
     });
 
     // Initial load
     getClients();
+    
+    // Set initial sidebar highlighting for the default page (Recommended Blogs)
+    updateSidebarActive(document.getElementById('blogs-tab'));
 });
 
