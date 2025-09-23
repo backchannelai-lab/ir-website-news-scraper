@@ -10,38 +10,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyUrlInput = document.getElementById('company-url');
     
     // Page toggle elements
-    const dashboardTab = document.getElementById('dashboard-tab');
-    const recipientsTab = document.getElementById('recipients-tab');
     const blogsTab = document.getElementById('blogs-tab-main');
     const settingsTab = document.getElementById('settings-tab');
-    const dashboardPage = document.getElementById('dashboard-page');
-    const recipientsPage = document.getElementById('recipients-page');
     const blogsPage = document.getElementById('blogs-page');
     const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !blogsTab || !settingsTab || !dashboardPage || !recipientsPage || !blogsPage || !settingsPage) {
+    if (!blogsTab || !settingsTab || !blogsPage || !settingsPage) {
         console.error('Required page elements not found');
         return;
     }
     
-    // Recipients elements
-    const recipientsList = document.getElementById('recipients-list');
-    const addRecipientForm = document.getElementById('add-recipient-form');
-    const toggleAddRecipientBtn = document.getElementById('toggle-add-recipient');
-    const cancelAddRecipientBtn = document.getElementById('cancel-add-recipient');
-    const recipientNameInput = document.getElementById('recipient-name');
-    const recipientEmailInput = document.getElementById('recipient-email');
+    // Blog prompt form element
+    const blogPromptForm = document.getElementById('blog-prompt-form');
+    const blogPromptTextarea = document.getElementById('blog-prompt');
     
     // Blogs elements
     const blogsList = document.getElementById('blogs-list');
-    const addBlogForm = document.getElementById('add-blog-form');
-    const toggleAddBlogBtn = document.getElementById('toggle-add-blog');
-    const cancelAddBlogBtn = document.getElementById('cancel-add-blog');
-    const blogNameInput = document.getElementById('blog-name');
-    const blogUrlInput = document.getElementById('blog-url');
-    const blogDescriptionInput = document.getElementById('blog-description');
-    const blogCategoryInput = document.getElementById('blog-category');
+    
+    // Blog suggestions elements
+    const generateSuggestionsBtn = document.getElementById('generate-suggestions-btn');
+    const blogSuggestions = document.getElementById('blog-suggestions');
+    const closeSuggestionsBtn = document.getElementById('close-suggestions');
+    const suggestionsContent = document.getElementById('suggestions-content');
     
     // Email template elements
     const emailTemplateForm = document.getElementById('email-template-form');
@@ -168,17 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentClientId) {
             // Clear all data when no client is selected
             companies = [];
-            recipients = [];
             blogs = [];
-            renderCompanies();
-            renderRecipients();
             renderBlogs();
             return;
         }
         
         // Load client-specific data
-        await getCompanies();
-        await getRecipients();
         await getBlogs();
         await loadSettings();
         await getEmailTemplate();
@@ -416,6 +402,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Populate schedule settings
             document.getElementById('cron-schedule').value = settings.schedule?.cron || '0 8 * * *';
+            
+            // Load blog prompt
+            await loadBlogPrompt();
         } catch (error) {
             console.error('Error loading settings:', error);
             showNotification('Error loading settings', 'error');
@@ -553,8 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle functionality
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
-        [dashboardTab, recipientsTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, recipientsPage, blogsPage, settingsPage].forEach(page => {
+        [blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
+        [blogsPage, settingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -564,17 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
         activePage.classList.add('active');
         activePage.style.display = 'block';
     }
-
-    dashboardTab.addEventListener('click', (e) => {
-        e.preventDefault();
-        showPage(dashboardTab, dashboardPage);
-    });
-
-    recipientsTab.addEventListener('click', (e) => {
-        e.preventDefault();
-        showPage(recipientsTab, recipientsPage);
-        getRecipients(); // Load recipients when switching to this page
-    });
 
     blogsTab.addEventListener('click', (e) => {
         e.preventDefault();
@@ -588,129 +566,82 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSettings();
     });
 
-    // Recipients functionality
-    async function getRecipients() {
+    // Blog prompt form functionality
+    async function loadBlogPrompt() {
         try {
-            const response = await fetch('/api/recipients');
-            if (!response.ok) throw new Error('Failed to fetch recipients');
-            recipients = await response.json();
-            renderRecipients();
+            const response = await fetch('/api/settings');
+            if (!response.ok) throw new Error('Failed to fetch settings');
+            const settings = await response.json();
+            
+            const prompt = settings.blogPrompt || `You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
+
+Client Context:
+- Client Name: {CLIENT_NAME}
+- Client Description: {CLIENT_DESCRIPTION}
+- Tracked Companies: {COMPANY_NAMES}
+- Company Tickers: {COMPANY_TICKERS}
+
+Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
+1. Blog name
+2. Detailed description explaining why it's relevant
+3. Category (finance, investing, business, technology, economics, other)
+4. URL
+
+Focus on blogs that provide:
+- Financial market analysis
+- Company earnings coverage
+- Investor relations insights
+- Industry-specific news
+- Economic indicators
+
+Make the descriptions specific to the client's tracked companies and industry focus.`;
+            
+            blogPromptTextarea.value = prompt;
         } catch (error) {
-            console.error('Error fetching recipients:', error);
-            showNotification('Error loading recipients', 'error');
+            console.error('Error loading blog prompt:', error);
+            showNotification('Error loading blog prompt', 'error');
         }
     }
 
-    function renderRecipients() {
-        // Keep the header row and clear only the recipient rows
-        const existingHeader = recipientsList.querySelector('.company-list-header');
-        const existingRecipients = recipientsList.querySelectorAll('.company-card');
-        existingRecipients.forEach(card => card.remove());
-        
-        if (recipients.length === 0) {
-            document.getElementById('recipients-empty-state').style.display = 'block';
-            return;
-        }
-        
-        document.getElementById('recipients-empty-state').style.display = 'none';
-        
-        recipients.forEach((recipient, index) => {
-            const recipientCard = document.createElement('div');
-            recipientCard.className = 'company-card';
-            recipientCard.innerHTML = `
-                <div class="company-info">
-                    <span class="company-name">${recipient.name}</span>
-                    <span class="company-url">${recipient.email}</span>
-                </div>
-                <div class="company-actions">
-                    <button class="delete-btn" data-index="${index}" title="Remove recipient">
-                        ×
-                    </button>
-                </div>
-            `;
-            recipientsList.appendChild(recipientCard);
-        });
-    }
-
-    // Toggle add recipient form
-    toggleAddRecipientBtn.addEventListener('click', () => {
-        toggleForm(addRecipientForm, toggleAddRecipientBtn);
-    });
-
-    // Cancel add recipient form
-    cancelAddRecipientBtn.addEventListener('click', () => {
-        addRecipientForm.style.display = 'none';
-        toggleAddRecipientBtn.style.display = 'block';
-        addRecipientForm.reset();
-    });
-
-    // Add a new recipient
-    addRecipientForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const submitBtn = addRecipientForm.querySelector('button[type="submit"]');
-        setButtonLoading(submitBtn, true, 'Adding...');
-        
+    async function saveBlogPrompt() {
         try {
-            const newRecipient = {
-                name: recipientNameInput.value.trim(),
-                email: recipientEmailInput.value.trim()
-            };
+            const prompt = blogPromptTextarea.value.trim();
             
-            recipients.push(newRecipient);
-            await saveRecipients();
-            renderRecipients();
-            addRecipientForm.reset();
-            
-            // Hide form and show button
-            addRecipientForm.style.display = 'none';
-            toggleAddRecipientBtn.style.display = 'block';
-            
-            showNotification('Recipient added successfully!', 'success');
-        } catch (error) {
-            console.error('Error adding recipient:', error);
-            showNotification('Error adding recipient. Please try again.', 'error');
-        } finally {
-            setButtonLoading(submitBtn, false);
-        }
-    });
-
-    // Delete a recipient
-    recipientsList.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('delete-btn')) {
-            const index = e.target.dataset.index;
-            const recipientName = recipients[index].name;
-            
-            if (confirm(`Are you sure you want to remove ${recipientName} from the recipient list?`)) {
-                try {
-                    recipients.splice(index, 1);
-                    await saveRecipients();
-                    renderRecipients();
-                    showNotification(`${recipientName} removed successfully!`, 'success');
-                } catch (error) {
-                    console.error('Error deleting recipient:', error);
-                    showNotification('Error removing recipient. Please try again.', 'error');
-                }
-            }
-        }
-    });
-
-    // Save recipients to the server
-    async function saveRecipients() {
-        try {
-            const response = await fetch('/api/recipients', {
+            const response = await fetch('/api/settings/blog-prompt', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(recipients)
+                body: JSON.stringify({ blogPrompt: prompt })
             });
-            if (!response.ok) throw new Error('Failed to save recipients');
+            
+            if (!response.ok) {
+                throw new Error('Failed to save blog prompt');
+            }
+            
+            showNotification('Blog prompt saved successfully!', 'success');
         } catch (error) {
-            console.error('Error saving recipients:', error);
+            console.error('Error saving blog prompt:', error);
+            showNotification('Error saving blog prompt', 'error');
             throw error;
         }
     }
+
+    // Blog prompt form handler
+    blogPromptForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = blogPromptForm.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Saving...');
+        
+        try {
+            await saveBlogPrompt();
+        } catch (error) {
+            // Error already handled in saveBlogPrompt
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
 
     // Blogs functionality
     async function getBlogs() {
@@ -757,50 +688,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Toggle add blog form
-    toggleAddBlogBtn.addEventListener('click', () => {
-        toggleForm(addBlogForm, toggleAddBlogBtn);
-    });
-
-    // Cancel add blog form
-    cancelAddBlogBtn.addEventListener('click', () => {
-        addBlogForm.style.display = 'none';
-        toggleAddBlogBtn.style.display = 'block';
-        addBlogForm.reset();
-    });
-
-    // Add a new blog
-    addBlogForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const submitBtn = addBlogForm.querySelector('button[type="submit"]');
-        setButtonLoading(submitBtn, true, 'Adding...');
-        
-        try {
-            const newBlog = {
-                name: blogNameInput.value.trim(),
-                url: blogUrlInput.value.trim(),
-                description: blogDescriptionInput.value.trim(),
-                category: blogCategoryInput.value
-            };
-            
-            blogs.push(newBlog);
-            await saveBlogs();
-            renderBlogs();
-            addBlogForm.reset();
-            
-            // Hide form and show button
-            addBlogForm.style.display = 'none';
-            toggleAddBlogBtn.style.display = 'block';
-            
-            showNotification('Blog added successfully!', 'success');
-        } catch (error) {
-            console.error('Error adding blog:', error);
-            showNotification('Error adding blog. Please try again.', 'error');
-        } finally {
-            setButtonLoading(submitBtn, false);
-        }
-    });
 
     // Delete a blog
     blogsList.addEventListener('click', async (e) => {
@@ -838,6 +725,110 @@ document.addEventListener('DOMContentLoaded', () => {
             throw error;
         }
     }
+
+    // Blog suggestions functionality
+    async function generateBlogSuggestions() {
+        if (!currentClientId) {
+            showNotification('Please select a client first', 'error');
+            return;
+        }
+
+        setButtonLoading(generateSuggestionsBtn, true, 'Generating...');
+        
+        try {
+            const response = await fetch('/api/blogs/suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ clientId: currentClientId })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate suggestions');
+            }
+            
+            const suggestions = await response.json();
+            displaySuggestions(suggestions);
+            blogSuggestions.style.display = 'block';
+            showNotification('Blog suggestions generated successfully!', 'success');
+        } catch (error) {
+            console.error('Error generating suggestions:', error);
+            showNotification('Error generating suggestions. Please try again.', 'error');
+        } finally {
+            setButtonLoading(generateSuggestionsBtn, false);
+        }
+    }
+
+    function displaySuggestions(suggestions) {
+        suggestionsContent.innerHTML = '';
+        
+        // Store suggestions globally for later use
+        window.tempSuggestions = suggestions;
+        
+        suggestions.forEach((suggestion, index) => {
+            const suggestionCard = document.createElement('div');
+            suggestionCard.className = 'suggestion-card';
+            suggestionCard.innerHTML = `
+                <div class="suggestion-title">${suggestion.name}</div>
+                <div class="suggestion-description">${suggestion.description}</div>
+                <div class="suggestion-meta">
+                    <span class="suggestion-category">${suggestion.category}</span>
+                    <div class="suggestion-actions">
+                        <button class="add-suggestion-btn" data-index="${index}">
+                            Add to List
+                        </button>
+                    </div>
+                </div>
+            `;
+            suggestionsContent.appendChild(suggestionCard);
+        });
+    }
+
+    function addSuggestionToBlogs(suggestionIndex) {
+        if (!window.tempSuggestions) {
+            showNotification('No suggestions available', 'error');
+            return;
+        }
+        
+        const suggestion = window.tempSuggestions[suggestionIndex];
+        if (!suggestion) {
+            showNotification('Invalid suggestion', 'error');
+            return;
+        }
+        
+        // Add the suggestion to the blogs array
+        const newBlog = {
+            name: suggestion.name,
+            url: suggestion.url || '#',
+            description: suggestion.description,
+            category: suggestion.category
+        };
+        
+        blogs.push(newBlog);
+        saveBlogs().then(() => {
+            renderBlogs();
+            showNotification(`${suggestion.name} added to your blog list!`, 'success');
+        }).catch(error => {
+            console.error('Error adding suggestion:', error);
+            showNotification('Error adding suggestion', 'error');
+        });
+    }
+
+    // Event listeners for suggestions
+    generateSuggestionsBtn.addEventListener('click', generateBlogSuggestions);
+    
+    closeSuggestionsBtn.addEventListener('click', () => {
+        blogSuggestions.style.display = 'none';
+    });
+
+    // Handle adding suggestions to the blog list
+    suggestionsContent.addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-suggestion-btn')) {
+            const index = e.target.dataset.index;
+            addSuggestionToBlogs(index);
+        }
+    });
 
     // Email template functionality
     async function getEmailTemplate() {

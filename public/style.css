@@ -1737,6 +1737,108 @@ input[type="text"], input[type="email"], input[type="url"], input[type="password
     text-decoration: underline;
 }
 
+/* Blog Suggestions Styles */
+.suggestions-section {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.suggestions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.suggestions-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+}
+
+.suggestions-content {
+    display: grid;
+    gap: 15px;
+}
+
+.suggestion-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.suggestion-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.suggestion-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.suggestion-description {
+    color: #6c757d;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.suggestion-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.suggestion-category {
+    background: #e9ecef;
+    color: #495057;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.suggestion-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.add-suggestion-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-suggestion-btn:hover {
+    background: #218838;
+}
+
+.add-suggestion-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 /* Responsive editor */
 @media (max-width: 768px) {
     .editor-toolbar {
@@ -1763,5 +1865,16 @@ input[type="text"], input[type="email"], input[type="url"], input[type="password
     .field-btn {
         padding: 3px 6px;
         font-size: 11px;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .suggestion-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }

@@ -326,6 +326,170 @@ app.post('/api/blogs', async (req, res) => {
     }
 });
 
+// Blog suggestions API endpoint
+app.post('/api/blogs/suggestions', async (req, res) => {
+    try {
+        const { clientId } = req.body;
+        
+        if (!clientId) {
+            return res.status(400).json({ error: 'Client ID is required' });
+        }
+        
+        // Get client information
+        let clients = [];
+        try {
+            const data = await fs.readFile(CLIENTS_FILE, 'utf8');
+            clients = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        const client = clients.find(c => c.id === clientId);
+        if (!client) {
+            return res.status(404).json({ error: 'Client not found' });
+        }
+        
+        // Get client's tracked companies for context
+        const files = getClientFiles(clientId);
+        let companies = [];
+        try {
+            const data = await fs.readFile(files.companies, 'utf8');
+            companies = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        // Get client's custom blog prompt
+        let settings = {};
+        try {
+            const settingsData = await fs.readFile(files.settings, 'utf8');
+            settings = JSON.parse(settingsData);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        // Generate AI-powered blog suggestions based on client context
+        const suggestions = generateBlogSuggestions(client, companies, settings.blogPrompt);
+        
+        res.json(suggestions);
+    } catch (error) {
+        console.error('Error generating blog suggestions:', error);
+        res.status(500).json({ error: 'Error generating blog suggestions' });
+    }
+});
+
+// Function to generate blog suggestions based on client and company context
+function generateBlogSuggestions(client, companies, customPrompt) {
+    const clientName = client.name;
+    const clientDescription = client.description || '';
+    const companyNames = companies.map(c => c.name).join(', ');
+    const companyTickers = companies.map(c => c.ticker).filter(t => t).join(', ');
+    
+    // Use custom prompt if available, otherwise use default
+    const defaultPrompt = `You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
+
+Client Context:
+- Client Name: {CLIENT_NAME}
+- Client Description: {CLIENT_DESCRIPTION}
+- Tracked Companies: {COMPANY_NAMES}
+- Company Tickers: {COMPANY_TICKERS}
+
+Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
+1. Blog name
+2. Detailed description explaining why it's relevant
+3. Category (finance, investing, business, technology, economics, other)
+4. URL
+
+Focus on blogs that provide:
+- Financial market analysis
+- Company earnings coverage
+- Investor relations insights
+- Industry-specific news
+- Economic indicators
+
+Make the descriptions specific to the client's tracked companies and industry focus.`;
+    
+    const prompt = customPrompt || defaultPrompt;
+    
+    // Replace placeholders in the prompt
+    const processedPrompt = prompt
+        .replace(/{CLIENT_NAME}/g, clientName)
+        .replace(/{CLIENT_DESCRIPTION}/g, clientDescription)
+        .replace(/{COMPANY_NAMES}/g, companyNames)
+        .replace(/{COMPANY_TICKERS}/g, companyTickers);
+    
+    // For now, we'll return the same suggestions but with context-aware descriptions
+    // In a real implementation, this would call an AI service with the processed prompt
+    const suggestions = [
+        {
+            name: "Financial Times - Markets",
+            description: `Comprehensive coverage of global financial markets, including analysis of public companies and market trends. ${companyNames ? `Particularly relevant for tracking companies like ${companyNames}.` : ''}`,
+            category: "finance",
+            url: "https://www.ft.com/markets"
+        },
+        {
+            name: "Seeking Alpha",
+            description: `Investment research platform with detailed analysis, earnings reports, and expert opinions. ${companyTickers ? `Excellent for analyzing tickers like ${companyTickers}.` : 'Great for investment research and analysis.'}`,
+            category: "investing",
+            url: "https://seekingalpha.com"
+        },
+        {
+            name: "Bloomberg Terminal Blog",
+            description: `Professional-grade financial news and analysis covering market movements and company earnings. ${clientName ? `Tailored insights for ${clientName}'s portfolio needs.` : 'Professional financial analysis.'}`,
+            category: "finance",
+            url: "https://www.bloomberg.com/professional/blog"
+        },
+        {
+            name: "Investor Relations Magazine",
+            description: `Specialized publication focusing on investor relations best practices and corporate communications. ${clientDescription ? `Perfect for ${clientDescription} needs.` : 'Essential for IR professionals.'}`,
+            category: "business",
+            url: "https://www.irmagazine.com"
+        },
+        {
+            name: "MarketWatch - Earnings",
+            description: `Real-time earnings coverage and company performance analysis. ${companyNames ? `Track earnings for ${companyNames} and similar companies.` : 'Comprehensive earnings tracking.'}`,
+            category: "finance",
+            url: "https://www.marketwatch.com/tools/earnings"
+        }
+    ];
+    
+    return suggestions;
+}
+
+// Blog prompt settings API endpoint
+app.post('/api/settings/blog-prompt', async (req, res) => {
+    try {
+        const { blogPrompt } = req.body;
+        const clientId = req.query.clientId;
+        
+        if (!blogPrompt) {
+            return res.status(400).json({ error: 'Blog prompt is required' });
+        }
+        
+        const files = getClientFiles(clientId);
+        
+        // Load existing settings
+        let settings = {};
+        try {
+            const data = await fs.readFile(files.settings, 'utf8');
+            settings = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        // Update blog prompt
+        settings.blogPrompt = blogPrompt;
+        
+        // Save updated settings
+        await fs.writeFile(files.settings, JSON.stringify(settings, null, 2));
+        
+        res.json({ message: 'Blog prompt saved successfully' });
+    } catch (error) {
+        console.error('Error saving blog prompt:', error);
+        res.status(500).json({ error: 'Error saving blog prompt' });
+    }
+});
+
 // Settings API endpoints
 app.get('/api/settings', async (req, res) => {
     try {
