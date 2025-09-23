@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailSettingsPage = document.getElementById('email-settings-page');
     
     // Section elements
-    const prScraperSection = document.getElementById('pr-scraper-nav').parentElement;
+    const prScraperSection = document.getElementById('pr-scraper-section');
     const blogsSection = document.getElementById('blogs-section');
     const blogsPage = document.getElementById('blogs-page');
     const backToPrScraperBtn = document.getElementById('back-to-pr-scraper');
