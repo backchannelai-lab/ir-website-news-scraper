@@ -10,13 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyUrlInput = document.getElementById('company-url');
     
     // Page toggle elements
+    const dashboardTab = document.getElementById('dashboard-tab');
     const blogsTab = document.getElementById('blogs-tab-main');
     const settingsTab = document.getElementById('settings-tab');
+    const dashboardPage = document.getElementById('dashboard-page');
     const blogsPage = document.getElementById('blogs-page');
     const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!blogsTab || !settingsTab || !blogsPage || !settingsPage) {
+    if (!dashboardTab || !blogsTab || !settingsTab || !dashboardPage || !blogsPage || !settingsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -160,11 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear all data when no client is selected
             companies = [];
             blogs = [];
+            renderCompanies();
             renderBlogs();
             return;
         }
         
         // Load client-specific data
+        await getCompanies();
         await getBlogs();
         await loadSettings();
         await getEmailTemplate();
@@ -542,8 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle functionality
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
-        [blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [blogsPage, settingsPage].forEach(page => {
+        [dashboardTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
+        [dashboardPage, blogsPage, settingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -566,6 +570,12 @@ document.addEventListener('DOMContentLoaded', () => {
             activeItem.classList.add('active');
         }
     }
+
+    dashboardTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(dashboardTab, dashboardPage);
+        updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
+    });
 
     blogsTab.addEventListener('click', (e) => {
         e.preventDefault();
@@ -1056,6 +1066,13 @@ Make the descriptions specific to the client's tracked companies and industry fo
     templateSubjectInput.addEventListener('input', updatePreview);
     templateBodyInput.addEventListener('input', updatePreview);
 
+    // Sidebar dashboard tab event listener
+    document.getElementById('dashboard-sidebar-tab').addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(dashboardTab, dashboardPage);
+        updateSidebarActive(e.target);
+    });
+
     // Sidebar blogs tab event listener
     document.getElementById('blogs-tab').addEventListener('click', (e) => {
         e.preventDefault();
@@ -1067,7 +1084,7 @@ Make the descriptions specific to the client's tracked companies and industry fo
     // Initial load
     getClients();
     
-    // Set initial sidebar highlighting for the default page (Recommended Blogs)
-    updateSidebarActive(document.getElementById('blogs-tab'));
+    // Set initial sidebar highlighting for the default page (PR Scraper/Dashboard)
+    updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
 });
 

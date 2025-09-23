@@ -16,7 +16,7 @@
         <div class="sidebar">
             <div class="sidebar-title">PR Scraper</div>
             <ul class="sidebar-nav">
-                <li><a href="/">PR Scraper</a></li>
+                <li><a href="#" id="dashboard-sidebar-tab" class="active">PR Scraper</a></li>
                 <li><a href="#" id="blogs-tab">Recommended Blogs</a></li>
                 <li><a href="/api/logout">Logout</a></li>
             </ul>
@@ -37,12 +37,13 @@
             
             <!-- Page Toggle Navigation -->
             <div class="page-toggle">
-                <button id="blogs-tab-main" class="page-tab active">Recommended Blogs</button>
+                <button id="dashboard-tab" class="page-tab active">PR Scraper</button>
+                <button id="blogs-tab-main" class="page-tab">Recommended Blogs</button>
                 <button id="settings-tab" class="page-tab">Settings</button>
             </div>
             
             <!-- Dashboard Page -->
-            <div id="dashboard-page" class="page-content">
+            <div id="dashboard-page" class="page-content active">
                 <div class="page-header">
                     <h1>Dashboard</h1>
                 </div>
@@ -231,7 +232,7 @@
             </div>
             
             <!-- Recommended Blogs Page -->
-            <div id="blogs-page" class="page-content active">
+            <div id="blogs-page" class="page-content">
                 <div class="section">
                     <div class="section-header">
                         <h2>Recommended Blogs</h2>
