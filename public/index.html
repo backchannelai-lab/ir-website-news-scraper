@@ -35,12 +35,11 @@
                 </div>
             </div>
             
-            <!-- Page Toggle Navigation -->
-            <div class="page-toggle">
-                <button id="dashboard-tab" class="page-tab active">PR Scraper</button>
+            <!-- PR Scraper Sub-Navigation -->
+            <div id="pr-scraper-nav" class="page-toggle">
+                <button id="dashboard-tab" class="page-tab active">Dashboard</button>
                 <button id="recipients-tab" class="page-tab">Recipients</button>
                 <button id="email-settings-tab" class="page-tab">Email Settings</button>
-                <button id="blogs-tab-main" class="page-tab">Recommended Blogs</button>
             </div>
             
             <!-- Dashboard Page -->
@@ -232,8 +231,14 @@
                 </div>
             </div>
             
-            <!-- Recommended Blogs Page -->
-            <div id="blogs-page" class="page-content">
+            <!-- Recommended Blogs Section -->
+            <div id="blogs-section" class="page-section" style="display: none;">
+                <div class="page-header">
+                    <button id="back-to-pr-scraper" class="btn btn-secondary btn-small">← Back to PR Scraper</button>
+                    <h1>Recommended Blogs</h1>
+                </div>
+                <!-- Recommended Blogs Page -->
+                <div id="blogs-page" class="page-content active">
                 <div class="section">
                     <div class="section-header">
                         <h2>Recommended Blogs</h2>
@@ -302,6 +307,7 @@ Make the descriptions specific to the client's tracked companies and industry fo
                         
                         <button type="submit" class="btn btn-primary">Save Blog Prompt</button>
                     </form>
+                </div>
                 </div>
             </div>
             

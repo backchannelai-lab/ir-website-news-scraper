@@ -9,18 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyTickerInput = document.getElementById('company-ticker');
     const companyUrlInput = document.getElementById('company-url');
     
-    // Page toggle elements
+    // PR Scraper sub-navigation elements
     const dashboardTab = document.getElementById('dashboard-tab');
     const recipientsTab = document.getElementById('recipients-tab');
     const emailSettingsTab = document.getElementById('email-settings-tab');
-    const blogsTab = document.getElementById('blogs-tab-main');
     const dashboardPage = document.getElementById('dashboard-page');
     const recipientsPage = document.getElementById('recipients-page');
     const emailSettingsPage = document.getElementById('email-settings-page');
+    
+    // Section elements
+    const prScraperSection = document.getElementById('pr-scraper-nav').parentElement;
+    const blogsSection = document.getElementById('blogs-section');
     const blogsPage = document.getElementById('blogs-page');
+    const backToPrScraperBtn = document.getElementById('back-to-pr-scraper');
     
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !emailSettingsTab || !blogsTab || !dashboardPage || !recipientsPage || !emailSettingsPage || !blogsPage) {
+    if (!dashboardTab || !recipientsTab || !emailSettingsTab || !dashboardPage || !recipientsPage || !emailSettingsPage || !blogsSection || !blogsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -553,11 +557,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Page toggle functionality
-    function showPage(activeTab, activePage) {
-        // Remove active class from all tabs and pages
-        [dashboardTab, recipientsTab, emailSettingsTab, blogsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, recipientsPage, emailSettingsPage, blogsPage].forEach(page => {
+    // PR Scraper sub-navigation functionality
+    function showPrScraperPage(activeTab, activePage) {
+        // Remove active class from all PR Scraper tabs and pages
+        [dashboardTab, recipientsTab, emailSettingsTab].forEach(tab => tab.classList.remove('active'));
+        [dashboardPage, recipientsPage, emailSettingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -566,6 +570,16 @@ document.addEventListener('DOMContentLoaded', () => {
         activeTab.classList.add('active');
         activePage.classList.add('active');
         activePage.style.display = 'block';
+    }
+
+    // Section navigation functionality
+    function showSection(section) {
+        // Hide all sections
+        prScraperSection.style.display = 'none';
+        blogsSection.style.display = 'none';
+        
+        // Show selected section
+        section.style.display = 'block';
     }
 
     // Sidebar navigation functionality
@@ -581,32 +595,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // PR Scraper sub-navigation event listeners
     dashboardTab.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(dashboardTab, dashboardPage);
-        updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
+        showPrScraperPage(dashboardTab, dashboardPage);
     });
 
     recipientsTab.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(recipientsTab, recipientsPage);
-        updateSidebarActive(null); // Clear sidebar highlighting since there's no recipients sidebar item
+        showPrScraperPage(recipientsTab, recipientsPage);
         getRecipients(); // Load recipients when switching to this page
     });
 
     emailSettingsTab.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(emailSettingsTab, emailSettingsPage);
-        updateSidebarActive(null); // Clear sidebar highlighting since there's no email settings sidebar item
+        showPrScraperPage(emailSettingsTab, emailSettingsPage);
         loadSettings();
     });
 
-    blogsTab.addEventListener('click', (e) => {
+    // Back to PR Scraper button
+    backToPrScraperBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(blogsTab, blogsPage);
-        updateSidebarActive(document.getElementById('blogs-tab'));
-        getBlogs(); // Load blogs when switching to this page
-        loadBlogPrompt(); // Load blog prompt settings
+        showSection(prScraperSection);
+        updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
     });
 
     // Blog prompt form functionality
@@ -1211,20 +1222,26 @@ Make the descriptions specific to the client's tracked companies and industry fo
     // Sidebar dashboard tab event listener
     document.getElementById('dashboard-sidebar-tab').addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(dashboardTab, dashboardPage);
+        showSection(prScraperSection);
+        showPrScraperPage(dashboardTab, dashboardPage);
         updateSidebarActive(e.target);
     });
 
     // Sidebar blogs tab event listener
     document.getElementById('blogs-tab').addEventListener('click', (e) => {
         e.preventDefault();
-        showPage(blogsTab, blogsPage);
+        showSection(blogsSection);
         updateSidebarActive(e.target);
         getBlogs(); // Load blogs when switching to this page
+        loadBlogPrompt(); // Load blog prompt settings
     });
 
     // Initial load
     getClients();
+    
+    // Show PR Scraper section by default
+    showSection(prScraperSection);
+    showPrScraperPage(dashboardTab, dashboardPage);
     
     // Set initial sidebar highlighting for the default page (PR Scraper/Dashboard)
     updateSidebarActive(document.getElementById('dashboard-sidebar-tab'));
