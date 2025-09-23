@@ -39,8 +39,8 @@
             <div class="page-toggle">
                 <button id="dashboard-tab" class="page-tab active">PR Scraper</button>
                 <button id="recipients-tab" class="page-tab">Recipients</button>
+                <button id="email-settings-tab" class="page-tab">Email Settings</button>
                 <button id="blogs-tab-main" class="page-tab">Recommended Blogs</button>
-                <button id="settings-tab" class="page-tab">Settings</button>
             </div>
             
             <!-- Dashboard Page -->
@@ -267,10 +267,46 @@
                         <p>Add your first recommended blog above to start building your collection.</p>
                     </div>
                 </div>
+                
+                <!-- Blog Settings Section -->
+                <div class="section">
+                    <h2>Blog Suggestion Configuration</h2>
+                    <p class="text-muted mb-3">Customize the AI prompt used to generate blog suggestions for your clients</p>
+                    <form id="blog-prompt-form">
+                        <div class="form-group">
+                            <label for="blog-prompt">Blog Suggestion Prompt</label>
+                            <textarea id="blog-prompt" rows="8" placeholder="Enter the system prompt for generating blog suggestions...">You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
+
+Client Context:
+- Client Name: {CLIENT_NAME}
+- Client Description: {CLIENT_DESCRIPTION}
+- Tracked Companies: {COMPANY_NAMES}
+- Company Tickers: {COMPANY_TICKERS}
+
+Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
+1. Blog name
+2. Detailed description explaining why it's relevant
+3. Category (finance, investing, business, technology, economics, other)
+4. URL
+
+Focus on blogs that provide:
+- Financial market analysis
+- Company earnings coverage
+- Investor relations insights
+- Industry-specific news
+- Economic indicators
+
+Make the descriptions specific to the client's tracked companies and industry focus.</textarea>
+                            <small class="text-muted">Use placeholders: {CLIENT_NAME}, {CLIENT_DESCRIPTION}, {COMPANY_NAMES}, {COMPANY_TICKERS}</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Blog Prompt</button>
+                    </form>
+                </div>
             </div>
             
-            <!-- Settings Page -->
-            <div id="settings-page" class="page-content">
+            <!-- Email Settings Page -->
+            <div id="email-settings-page" class="page-content">
                 <div class="section">
                     <h2>Email Configuration</h2>
                     <p class="text-muted mb-3">Configure your email settings for automated reports</p>
@@ -330,41 +366,6 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary">Save Schedule</button>
-                    </form>
-                </div>
-                
-                <div class="section">
-                    <h2>Blog Suggestion Configuration</h2>
-                    <p class="text-muted mb-3">Customize the AI prompt used to generate blog suggestions for your clients</p>
-                    <form id="blog-prompt-form">
-                        <div class="form-group">
-                            <label for="blog-prompt">Blog Suggestion Prompt</label>
-                            <textarea id="blog-prompt" rows="8" placeholder="Enter the system prompt for generating blog suggestions...">You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
-
-Client Context:
-- Client Name: {CLIENT_NAME}
-- Client Description: {CLIENT_DESCRIPTION}
-- Tracked Companies: {COMPANY_NAMES}
-- Company Tickers: {COMPANY_TICKERS}
-
-Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
-1. Blog name
-2. Detailed description explaining why it's relevant
-3. Category (finance, investing, business, technology, economics, other)
-4. URL
-
-Focus on blogs that provide:
-- Financial market analysis
-- Company earnings coverage
-- Investor relations insights
-- Industry-specific news
-- Economic indicators
-
-Make the descriptions specific to the client's tracked companies and industry focus.</textarea>
-                            <small class="text-muted">Use placeholders: {CLIENT_NAME}, {CLIENT_DESCRIPTION}, {COMPANY_NAMES}, {COMPANY_TICKERS}</small>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">Save Blog Prompt</button>
                     </form>
                 </div>
                 

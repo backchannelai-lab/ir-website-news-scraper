@@ -12,15 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle elements
     const dashboardTab = document.getElementById('dashboard-tab');
     const recipientsTab = document.getElementById('recipients-tab');
+    const emailSettingsTab = document.getElementById('email-settings-tab');
     const blogsTab = document.getElementById('blogs-tab-main');
-    const settingsTab = document.getElementById('settings-tab');
     const dashboardPage = document.getElementById('dashboard-page');
     const recipientsPage = document.getElementById('recipients-page');
+    const emailSettingsPage = document.getElementById('email-settings-page');
     const blogsPage = document.getElementById('blogs-page');
-    const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !blogsTab || !settingsTab || !dashboardPage || !recipientsPage || !blogsPage || !settingsPage) {
+    if (!dashboardTab || !recipientsTab || !emailSettingsTab || !blogsTab || !dashboardPage || !recipientsPage || !emailSettingsPage || !blogsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Load settings for page
+    // Load email settings for page
     async function loadSettings() {
         try {
             const response = await fetch('/api/settings');
@@ -419,9 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Populate schedule settings
             document.getElementById('cron-schedule').value = settings.schedule?.cron || '0 8 * * *';
-            
-            // Load blog prompt
-            await loadBlogPrompt();
         } catch (error) {
             console.error('Error loading settings:', error);
             showNotification('Error loading settings', 'error');
@@ -559,8 +556,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle functionality
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
-        [dashboardTab, recipientsTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, recipientsPage, blogsPage, settingsPage].forEach(page => {
+        [dashboardTab, recipientsTab, emailSettingsTab, blogsTab].forEach(tab => tab.classList.remove('active'));
+        [dashboardPage, recipientsPage, emailSettingsPage, blogsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -597,18 +594,19 @@ document.addEventListener('DOMContentLoaded', () => {
         getRecipients(); // Load recipients when switching to this page
     });
 
+    emailSettingsTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(emailSettingsTab, emailSettingsPage);
+        updateSidebarActive(null); // Clear sidebar highlighting since there's no email settings sidebar item
+        loadSettings();
+    });
+
     blogsTab.addEventListener('click', (e) => {
         e.preventDefault();
         showPage(blogsTab, blogsPage);
         updateSidebarActive(document.getElementById('blogs-tab'));
         getBlogs(); // Load blogs when switching to this page
-    });
-
-    settingsTab.addEventListener('click', (e) => {
-        e.preventDefault();
-        showPage(settingsTab, settingsPage);
-        updateSidebarActive(null); // Clear sidebar highlighting since there's no settings sidebar item
-        loadSettings();
+        loadBlogPrompt(); // Load blog prompt settings
     });
 
     // Blog prompt form functionality
