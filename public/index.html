@@ -298,7 +298,7 @@
                     <form id="blog-prompt-form">
                         <div class="form-group">
                             <label for="blog-prompt">Blog Suggestion Prompt</label>
-                            <textarea id="blog-prompt" rows="8" placeholder="Enter the system prompt for generating blog suggestions...">You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
+                            <textarea id="blog-prompt" rows="12" placeholder="Enter the system prompt for generating blog suggestions...">You are an expert in investor relations and financial analysis. Generate 5 highly relevant blog recommendations for a client based on their context and current market trends.
 
 Client Context:
 - Client Name: {CLIENT_NAME}
@@ -306,20 +306,37 @@ Client Context:
 - Tracked Companies: {COMPANY_NAMES}
 - Company Tickers: {COMPANY_TICKERS}
 
+Current Market Trends & Relevance Factors:
+- Secondary offerings are top of mind (growing market segment)
+- SPAC activity and de-SPAC transactions
+- ESG investing and sustainability reporting
+- AI and technology disruption across sectors
+- Interest rate environment and Fed policy
+- Geopolitical factors affecting markets
+- Sector rotation and thematic investing
+
 Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
 1. Blog name
 2. Detailed description explaining why it's relevant
 3. Category (finance, investing, business, technology, economics, other)
 4. URL
+5. Relevance score (1-10) based on current market trends and client context
 
 Focus on blogs that provide:
-- Financial market analysis
-- Company earnings coverage
-- Investor relations insights
-- Industry-specific news
-- Economic indicators
+- Financial market analysis with current trend insights
+- Company earnings coverage and secondary offering analysis
+- Investor relations insights and best practices
+- Industry-specific news and sector analysis
+- Economic indicators and policy implications
+- SPAC and secondary market coverage
 
-Make the descriptions specific to the client's tracked companies and industry focus.</textarea>
+Prioritize relevance by considering:
+- How well the blog matches the client's industry focus
+- Current market trends and hot topics (especially secondaries, SPACs, ESG)
+- Timeliness of content for investor relations needs
+- Quality and authority of the blog source
+
+Make the descriptions specific to the client's tracked companies, industry focus, and current market conditions.</textarea>
                             <small class="text-muted">Use placeholders: {CLIENT_NAME}, {CLIENT_DESCRIPTION}, {COMPANY_NAMES}, {COMPANY_TICKERS}</small>
                         </div>
                         

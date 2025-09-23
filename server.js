@@ -385,8 +385,8 @@ function generateBlogSuggestions(client, companies, customPrompt) {
     const companyNames = companies.map(c => c.name).join(', ');
     const companyTickers = companies.map(c => c.ticker).filter(t => t).join(', ');
     
-    // Use custom prompt if available, otherwise use default
-    const defaultPrompt = `You are an expert in investor relations and financial analysis. Generate 5 relevant blog recommendations for a client based on their context.
+    // Use custom prompt if available, otherwise use default with relevance factors
+    const defaultPrompt = `You are an expert in investor relations and financial analysis. Generate 5 highly relevant blog recommendations for a client based on their context and current market trends.
 
 Client Context:
 - Client Name: {CLIENT_NAME}
@@ -394,20 +394,37 @@ Client Context:
 - Tracked Companies: {COMPANY_NAMES}
 - Company Tickers: {COMPANY_TICKERS}
 
+Current Market Trends & Relevance Factors:
+- Secondary offerings are top of mind (growing market segment)
+- SPAC activity and de-SPAC transactions
+- ESG investing and sustainability reporting
+- AI and technology disruption across sectors
+- Interest rate environment and Fed policy
+- Geopolitical factors affecting markets
+- Sector rotation and thematic investing
+
 Generate 5 high-quality blog recommendations that would be valuable for this client's investor relations needs. Each suggestion should include:
 1. Blog name
 2. Detailed description explaining why it's relevant
 3. Category (finance, investing, business, technology, economics, other)
 4. URL
+5. Relevance score (1-10) based on current market trends and client context
 
 Focus on blogs that provide:
-- Financial market analysis
-- Company earnings coverage
-- Investor relations insights
-- Industry-specific news
-- Economic indicators
+- Financial market analysis with current trend insights
+- Company earnings coverage and secondary offering analysis
+- Investor relations insights and best practices
+- Industry-specific news and sector analysis
+- Economic indicators and policy implications
+- SPAC and secondary market coverage
 
-Make the descriptions specific to the client's tracked companies and industry focus.`;
+Prioritize relevance by considering:
+- How well the blog matches the client's industry focus
+- Current market trends and hot topics (especially secondaries, SPACs, ESG)
+- Timeliness of content for investor relations needs
+- Quality and authority of the blog source
+
+Make the descriptions specific to the client's tracked companies, industry focus, and current market conditions.`;
     
     const prompt = customPrompt || defaultPrompt;
     
@@ -418,38 +435,48 @@ Make the descriptions specific to the client's tracked companies and industry fo
         .replace(/{COMPANY_NAMES}/g, companyNames)
         .replace(/{COMPANY_TICKERS}/g, companyTickers);
     
-    // For now, we'll return the same suggestions but with context-aware descriptions
+    // Generate context-aware suggestions with relevance scoring
     // In a real implementation, this would call an AI service with the processed prompt
     const suggestions = [
         {
-            name: "Financial Times - Markets",
-            description: `Comprehensive coverage of global financial markets, including analysis of public companies and market trends. ${companyNames ? `Particularly relevant for tracking companies like ${companyNames}.` : ''}`,
+            name: "The Deal - Secondary Offerings",
+            description: `Leading coverage of secondary offerings, follow-on deals, and capital raising transactions. ${companyNames ? `Highly relevant for ${companyNames} considering secondary offerings in the current market.` : 'Essential for tracking the growing secondary market.'} Covers pricing strategies, market conditions, and execution best practices.`,
             category: "finance",
-            url: "https://www.ft.com/markets"
+            url: "https://www.thedeal.com/secondaries",
+            relevanceScore: 9,
+            relevanceFactors: ["Secondary offerings", "Capital raising", "Market conditions"]
         },
         {
-            name: "Seeking Alpha",
-            description: `Investment research platform with detailed analysis, earnings reports, and expert opinions. ${companyTickers ? `Excellent for analyzing tickers like ${companyTickers}.` : 'Great for investment research and analysis.'}`,
+            name: "SPACInsider",
+            description: `Comprehensive SPAC market analysis, de-SPAC transactions, and regulatory updates. ${clientDescription ? `Perfect for ${clientDescription} navigating SPAC-related opportunities.` : 'Critical for understanding SPAC market dynamics.'} Covers deal flow, pricing trends, and regulatory changes.`,
+            category: "finance",
+            url: "https://spacinsider.com",
+            relevanceScore: 8,
+            relevanceFactors: ["SPAC activity", "De-SPAC transactions", "Market trends"]
+        },
+        {
+            name: "ESG Today",
+            description: `Leading ESG investing news and sustainability reporting insights. ${companyNames ? `Valuable for ${companyNames} developing ESG strategies and reporting.` : 'Essential for ESG-focused investor relations.'} Covers ESG frameworks, reporting standards, and investor expectations.`,
             category: "investing",
-            url: "https://seekingalpha.com"
-        },
-        {
-            name: "Bloomberg Terminal Blog",
-            description: `Professional-grade financial news and analysis covering market movements and company earnings. ${clientName ? `Tailored insights for ${clientName}'s portfolio needs.` : 'Professional financial analysis.'}`,
-            category: "finance",
-            url: "https://www.bloomberg.com/professional/blog"
+            url: "https://www.esgtoday.com",
+            relevanceScore: 7,
+            relevanceFactors: ["ESG investing", "Sustainability reporting", "Investor relations"]
         },
         {
             name: "Investor Relations Magazine",
-            description: `Specialized publication focusing on investor relations best practices and corporate communications. ${clientDescription ? `Perfect for ${clientDescription} needs.` : 'Essential for IR professionals.'}`,
+            description: `Specialized publication focusing on investor relations best practices and corporate communications. ${clientDescription ? `Perfect for ${clientDescription} needs.` : 'Essential for IR professionals.'} Covers earnings communications, investor targeting, and market positioning.`,
             category: "business",
-            url: "https://www.irmagazine.com"
+            url: "https://www.irmagazine.com",
+            relevanceScore: 6,
+            relevanceFactors: ["Investor relations", "Corporate communications", "Best practices"]
         },
         {
-            name: "MarketWatch - Earnings",
-            description: `Real-time earnings coverage and company performance analysis. ${companyNames ? `Track earnings for ${companyNames} and similar companies.` : 'Comprehensive earnings tracking.'}`,
-            category: "finance",
-            url: "https://www.marketwatch.com/tools/earnings"
+            name: "Federal Reserve Economic Data (FRED)",
+            description: `Real-time economic data and Fed policy analysis. ${companyNames ? `Critical for ${companyNames} understanding interest rate environment and economic indicators.` : 'Essential for macro-economic analysis.'} Covers Fed policy, inflation data, and economic trends affecting markets.`,
+            category: "economics",
+            url: "https://fred.stlouisfed.org",
+            relevanceScore: 8,
+            relevanceFactors: ["Interest rates", "Fed policy", "Economic indicators"]
         }
     ];
     

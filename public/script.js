@@ -995,6 +995,16 @@ Make the descriptions specific to the client's tracked companies and industry fo
         suggestions.forEach((suggestion, index) => {
             const suggestionCard = document.createElement('div');
             suggestionCard.className = 'suggestion-card';
+            
+            // Build relevance factors HTML
+            const relevanceFactorsHtml = suggestion.relevanceFactors 
+                ? `<div class="relevance-factors">
+                     ${suggestion.relevanceFactors.map(factor => 
+                       `<span class="relevance-factor">${factor}</span>`
+                     ).join('')}
+                   </div>`
+                : '';
+            
             suggestionCard.innerHTML = `
                 <div class="suggestion-title">${suggestion.name}</div>
                 <div class="suggestion-description">${suggestion.description}</div>
@@ -1006,6 +1016,12 @@ Make the descriptions specific to the client's tracked companies and industry fo
                         </button>
                     </div>
                 </div>
+                ${suggestion.relevanceScore ? `
+                <div class="suggestion-relevance">
+                    <span class="relevance-score">Relevance: ${suggestion.relevanceScore}/10</span>
+                </div>
+                ${relevanceFactorsHtml}
+                ` : ''}
             `;
             suggestionsContent.appendChild(suggestionCard);
         });
