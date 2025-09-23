@@ -12,13 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle elements
     const dashboardTab = document.getElementById('dashboard-tab');
     const recipientsTab = document.getElementById('recipients-tab');
+    const blogsTab = document.getElementById('blogs-tab-main');
     const settingsTab = document.getElementById('settings-tab');
     const dashboardPage = document.getElementById('dashboard-page');
     const recipientsPage = document.getElementById('recipients-page');
+    const blogsPage = document.getElementById('blogs-page');
     const settingsPage = document.getElementById('settings-page');
     
     // Validate required elements
-    if (!dashboardTab || !recipientsTab || !settingsTab || !dashboardPage || !recipientsPage || !settingsPage) {
+    if (!dashboardTab || !recipientsTab || !blogsTab || !settingsTab || !dashboardPage || !recipientsPage || !blogsPage || !settingsPage) {
         console.error('Required page elements not found');
         return;
     }
@@ -30,6 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelAddRecipientBtn = document.getElementById('cancel-add-recipient');
     const recipientNameInput = document.getElementById('recipient-name');
     const recipientEmailInput = document.getElementById('recipient-email');
+    
+    // Blogs elements
+    const blogsList = document.getElementById('blogs-list');
+    const addBlogForm = document.getElementById('add-blog-form');
+    const toggleAddBlogBtn = document.getElementById('toggle-add-blog');
+    const cancelAddBlogBtn = document.getElementById('cancel-add-blog');
+    const blogNameInput = document.getElementById('blog-name');
+    const blogUrlInput = document.getElementById('blog-url');
+    const blogDescriptionInput = document.getElementById('blog-description');
+    const blogCategoryInput = document.getElementById('blog-category');
     
     // Email template elements
     const emailTemplateForm = document.getElementById('email-template-form');
@@ -46,6 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let companies = [];
     let recipients = [];
+    let blogs = [];
+    let clients = [];
+    let currentClientId = null;
+
+    // Client Management Elements
+    const clientSelect = document.getElementById('client-select');
+    const addClientBtn = document.getElementById('add-client-btn');
+    const clientModal = document.getElementById('client-modal');
+    const clientForm = document.getElementById('client-form');
+    const clientNameInput = document.getElementById('client-name');
+    const clientDescriptionInput = document.getElementById('client-description');
+    const cancelClientBtn = document.getElementById('cancel-client-btn');
+    const modalClose = document.querySelector('.modal-close');
 
     // Utility functions
     function showNotification(message, type = 'info') {
@@ -97,10 +122,155 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Client Management Functions
+    async function getClients() {
+        try {
+            const response = await fetch('/api/clients');
+            if (!response.ok) throw new Error('Failed to fetch clients');
+            clients = await response.json();
+            renderClientSelect();
+        } catch (error) {
+            console.error('Error fetching clients:', error);
+            showNotification('Error loading clients', 'error');
+        }
+    }
+
+    function renderClientSelect() {
+        clientSelect.innerHTML = '<option value="">Select a client...</option>';
+        clients.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client.id;
+            option.textContent = client.name;
+            clientSelect.appendChild(option);
+        });
+        
+        // Restore selected client from localStorage
+        const savedClientId = localStorage.getItem('currentClientId');
+        if (savedClientId && clients.find(c => c.id === savedClientId)) {
+            clientSelect.value = savedClientId;
+            currentClientId = savedClientId;
+            loadClientData();
+        }
+    }
+
+    function switchClient(clientId) {
+        currentClientId = clientId;
+        localStorage.setItem('currentClientId', clientId);
+        loadClientData();
+        
+        if (clientId) {
+            const client = clients.find(c => c.id === clientId);
+            showNotification(`Switched to client: ${client.name}`, 'success');
+        }
+    }
+
+    async function loadClientData() {
+        if (!currentClientId) {
+            // Clear all data when no client is selected
+            companies = [];
+            recipients = [];
+            blogs = [];
+            renderCompanies();
+            renderRecipients();
+            renderBlogs();
+            return;
+        }
+        
+        // Load client-specific data
+        await getCompanies();
+        await getRecipients();
+        await getBlogs();
+        await loadSettings();
+        await getEmailTemplate();
+    }
+
+    async function createClient(clientData) {
+        try {
+            const response = await fetch('/api/clients', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clientData)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to create client');
+            }
+            
+            const newClient = await response.json();
+            clients.push(newClient);
+            renderClientSelect();
+            
+            // Switch to the new client
+            clientSelect.value = newClient.id;
+            switchClient(newClient.id);
+            
+            showNotification(`Client "${newClient.name}" created successfully!`, 'success');
+            return newClient;
+        } catch (error) {
+            console.error('Error creating client:', error);
+            showNotification(error.message, 'error');
+            throw error;
+        }
+    }
+
+    function openClientModal() {
+        clientForm.reset();
+        document.getElementById('client-modal-title').textContent = 'Add New Client';
+        clientModal.style.display = 'block';
+        clientNameInput.focus();
+    }
+
+    function closeClientModal() {
+        clientModal.style.display = 'none';
+        clientForm.reset();
+    }
+
+    // Client Event Listeners
+    clientSelect.addEventListener('change', (e) => {
+        switchClient(e.target.value);
+    });
+
+    addClientBtn.addEventListener('click', openClientModal);
+
+    clientForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = clientForm.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Creating...');
+        
+        try {
+            const clientData = {
+                name: clientNameInput.value.trim(),
+                description: clientDescriptionInput.value.trim()
+            };
+            
+            await createClient(clientData);
+            closeClientModal();
+        } catch (error) {
+            // Error already handled in createClient
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
+
+    cancelClientBtn.addEventListener('click', closeClientModal);
+    modalClose.addEventListener('click', closeClientModal);
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+        if (e.target === clientModal) {
+            closeClientModal();
+        }
+    });
+
     // Fetch and display companies
     async function getCompanies() {
         try {
-            const response = await fetch('/api/companies');
+            const url = currentClientId ? `/api/companies?clientId=${currentClientId}` : '/api/companies';
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch companies');
             companies = await response.json();
             renderCompanies();
@@ -210,7 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save companies to the server
     async function saveCompanies() {
         try {
-            const response = await fetch('/api/companies', {
+            const url = currentClientId ? `/api/companies?clientId=${currentClientId}` : '/api/companies';
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -382,8 +553,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page toggle functionality
     function showPage(activeTab, activePage) {
         // Remove active class from all tabs and pages
-        [dashboardTab, recipientsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
-        [dashboardPage, recipientsPage, settingsPage].forEach(page => {
+        [dashboardTab, recipientsTab, blogsTab, settingsTab].forEach(tab => tab.classList.remove('active'));
+        [dashboardPage, recipientsPage, blogsPage, settingsPage].forEach(page => {
             page.classList.remove('active');
             page.style.display = 'none';
         });
@@ -403,6 +574,12 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         showPage(recipientsTab, recipientsPage);
         getRecipients(); // Load recipients when switching to this page
+    });
+
+    blogsTab.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(blogsTab, blogsPage);
+        getBlogs(); // Load blogs when switching to this page
     });
 
     settingsTab.addEventListener('click', (e) => {
@@ -535,6 +712,133 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Blogs functionality
+    async function getBlogs() {
+        try {
+            const response = await fetch('/api/blogs');
+            if (!response.ok) throw new Error('Failed to fetch blogs');
+            blogs = await response.json();
+            renderBlogs();
+        } catch (error) {
+            console.error('Error fetching blogs:', error);
+            showNotification('Error loading blogs', 'error');
+        }
+    }
+
+    function renderBlogs() {
+        // Keep the header row and clear only the blog rows
+        const existingHeader = blogsList.querySelector('.company-list-header');
+        const existingBlogs = blogsList.querySelectorAll('.company-card');
+        existingBlogs.forEach(card => card.remove());
+        
+        if (blogs.length === 0) {
+            document.getElementById('blogs-empty-state').style.display = 'block';
+            return;
+        }
+        
+        document.getElementById('blogs-empty-state').style.display = 'none';
+        
+        blogs.forEach((blog, index) => {
+            const blogCard = document.createElement('div');
+            blogCard.className = 'company-card';
+            blogCard.innerHTML = `
+                <div class="company-info">
+                    <span class="company-name">${blog.name}</span>
+                    <span class="company-ticker">${blog.category}</span>
+                    <a href="${blog.url}" target="_blank" class="company-url" title="${blog.url}">${blog.url}</a>
+                </div>
+                <div class="company-actions">
+                    <button class="delete-btn" data-index="${index}" title="Remove blog">
+                        ×
+                    </button>
+                </div>
+            `;
+            blogsList.appendChild(blogCard);
+        });
+    }
+
+    // Toggle add blog form
+    toggleAddBlogBtn.addEventListener('click', () => {
+        toggleForm(addBlogForm, toggleAddBlogBtn);
+    });
+
+    // Cancel add blog form
+    cancelAddBlogBtn.addEventListener('click', () => {
+        addBlogForm.style.display = 'none';
+        toggleAddBlogBtn.style.display = 'block';
+        addBlogForm.reset();
+    });
+
+    // Add a new blog
+    addBlogForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = addBlogForm.querySelector('button[type="submit"]');
+        setButtonLoading(submitBtn, true, 'Adding...');
+        
+        try {
+            const newBlog = {
+                name: blogNameInput.value.trim(),
+                url: blogUrlInput.value.trim(),
+                description: blogDescriptionInput.value.trim(),
+                category: blogCategoryInput.value
+            };
+            
+            blogs.push(newBlog);
+            await saveBlogs();
+            renderBlogs();
+            addBlogForm.reset();
+            
+            // Hide form and show button
+            addBlogForm.style.display = 'none';
+            toggleAddBlogBtn.style.display = 'block';
+            
+            showNotification('Blog added successfully!', 'success');
+        } catch (error) {
+            console.error('Error adding blog:', error);
+            showNotification('Error adding blog. Please try again.', 'error');
+        } finally {
+            setButtonLoading(submitBtn, false);
+        }
+    });
+
+    // Delete a blog
+    blogsList.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('delete-btn')) {
+            const index = e.target.dataset.index;
+            const blogName = blogs[index].name;
+            
+            if (confirm(`Are you sure you want to remove ${blogName} from the blog list?`)) {
+                try {
+                    blogs.splice(index, 1);
+                    await saveBlogs();
+                    renderBlogs();
+                    showNotification(`${blogName} removed successfully!`, 'success');
+                } catch (error) {
+                    console.error('Error deleting blog:', error);
+                    showNotification('Error removing blog. Please try again.', 'error');
+                }
+            }
+        }
+    });
+
+    // Save blogs to the server
+    async function saveBlogs() {
+        try {
+            const response = await fetch('/api/blogs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(blogs)
+            });
+            if (!response.ok) throw new Error('Failed to save blogs');
+        } catch (error) {
+            console.error('Error saving blogs:', error);
+            throw error;
+        }
+    }
+
     // Email template functionality
     async function getEmailTemplate() {
         try {
@@ -563,8 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: templateBodyInput.innerHTML.trim()
             };
             
-            console.log('Saving template:', template);
-            
             const response = await fetch('/api/settings/email-template', {
                 method: 'POST',
                 headers: {
@@ -573,11 +875,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(template)
             });
             
-            console.log('Response status:', response.status);
-            
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Server error:', errorText);
                 throw new Error(`Failed to save email template: ${errorText}`);
             }
             
@@ -625,7 +924,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     emailTemplateForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        console.log('Form submit triggered');
         
         // Check if template body has content
         if (templateBodyInput.textContent.trim() === '') {
@@ -634,17 +932,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const submitBtn = emailTemplateForm.querySelector('button[type="submit"]');
-        console.log('Submit button found:', submitBtn);
         setButtonLoading(submitBtn, true, 'Saving...');
         
         try {
-            console.log('Calling saveEmailTemplate');
             await saveEmailTemplate();
-            console.log('Template saved successfully');
             emailTemplateForm.style.display = 'none';
             toggleTemplateFormBtn.style.display = 'block';
         } catch (error) {
-            console.error('Error saving template:', error);
             // Error already handled in saveEmailTemplate
         } finally {
             setButtonLoading(submitBtn, false);
@@ -695,34 +989,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Font size and family changes
     fontSizeSelect.addEventListener('change', () => {
         const size = fontSizeSelect.value;
-        execCommand('styleWithCSS', 'true');
-        execCommand('fontSize', '7');
-        // Apply custom font size via CSS
+        
+        // Get the current selection
         const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            if (!range.collapsed) {
-                const span = document.createElement('span');
-                span.style.fontSize = size;
-                try {
-                    range.surroundContents(span);
-                } catch (e) {
-                    // If surroundContents fails, insert the span
-                    range.deleteContents();
-                    range.insertNode(span);
-                }
-            } else {
-                // If no selection, insert at cursor
-                const span = document.createElement('span');
-                span.style.fontSize = size;
-                span.innerHTML = '&nbsp;';
-                range.insertNode(span);
-                range.setStartAfter(span);
-                range.setEndAfter(span);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
+        if (selection.rangeCount === 0 || selection.isCollapsed) {
+            return;
         }
+        
+        const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+        
+        if (selectedText) {
+            // Create a span with the new font size
+            const span = document.createElement('span');
+            span.style.fontSize = size;
+            span.style.display = 'inline';
+            span.textContent = selectedText;
+            
+            // Replace the selected content
+            range.deleteContents();
+            range.insertNode(span);
+            
+            // Clear selection to show the change
+            selection.removeAllRanges();
+        }
+        
         updatePreview();
     });
 
@@ -759,9 +1050,14 @@ document.addEventListener('DOMContentLoaded', () => {
     templateSubjectInput.addEventListener('input', updatePreview);
     templateBodyInput.addEventListener('input', updatePreview);
 
+    // Sidebar blogs tab event listener
+    document.getElementById('blogs-tab').addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(blogsTab, blogsPage);
+        getBlogs(); // Load blogs when switching to this page
+    });
+
     // Initial load
-    getCompanies();
-    getRecipients();
-    getEmailTemplate();
+    getClients();
 });
 

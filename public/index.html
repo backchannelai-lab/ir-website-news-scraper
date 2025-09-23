@@ -17,16 +17,29 @@
             <div class="sidebar-title">PR Scraper</div>
             <ul class="sidebar-nav">
                 <li><a href="/" class="active">PR Scraper</a></li>
+                <li><a href="#" id="blogs-tab">Recommended Blogs</a></li>
                 <li><a href="/api/logout">Logout</a></li>
             </ul>
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Client Selection Header -->
+            <div class="client-header">
+                <div class="client-selector">
+                    <label for="client-select">Current Client:</label>
+                    <select id="client-select" class="client-dropdown">
+                        <option value="">Select a client...</option>
+                    </select>
+                    <button id="add-client-btn" class="btn btn-secondary btn-small">Add New Client</button>
+                </div>
+            </div>
+            
             <!-- Page Toggle Navigation -->
             <div class="page-toggle">
                 <button id="dashboard-tab" class="page-tab active">Dashboard</button>
                 <button id="recipients-tab" class="page-tab">Recipients</button>
+                <button id="blogs-tab-main" class="page-tab">Recommended Blogs</button>
                 <button id="settings-tab" class="page-tab">Settings</button>
             </div>
             
@@ -83,10 +96,6 @@
 
                 <!-- Email Template Section -->
                 <div class="section">
-                    <div class="section-header">
-                        <h2>Email Template</h2>
-                        <button id="toggle-template-form" class="btn btn-primary btn-small">Customize Template</button>
-                    </div>
                     
                     <form id="email-template-form" class="add-form">
                         <div class="form-group">
@@ -161,7 +170,10 @@
                     </form>
                     
                     <div class="template-preview">
-                        <h3>Template Preview</h3>
+                        <div class="preview-header">
+                            <h3>Template Preview</h3>
+                            <button id="toggle-template-form" class="btn btn-primary btn-small">Customize Template</button>
+                        </div>
                         <div class="preview-container">
                             <div class="preview-subject">
                                 <strong>Subject:</strong> <span id="preview-subject">Daily Investor Relations Update - {DATE}</span>
@@ -216,6 +228,65 @@
                     <div id="recipients-empty-state" class="empty-state">
                         <h3>No recipients added yet</h3>
                         <p>Add your first recipient above to start building your distribution list.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommended Blogs Page -->
+            <div id="blogs-page" class="page-content">
+                <div class="section">
+                    <div class="section-header">
+                        <h2>Recommended Blogs</h2>
+                        <button id="toggle-add-blog" class="btn btn-primary btn-small">Add Blog</button>
+                    </div>
+                    
+                    <form id="add-blog-form" class="add-form">
+                        <div class="form-grid form-grid-2">
+                            <div class="form-group">
+                                <label for="blog-name">Blog Name</label>
+                                <input type="text" id="blog-name" placeholder="Enter blog name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="blog-url">Blog URL</label>
+                                <input type="url" id="blog-url" placeholder="https://example-blog.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="blog-description">Description (optional)</label>
+                                <input type="text" id="blog-description" placeholder="Brief description of the blog">
+                            </div>
+                            <div class="form-group">
+                                <label for="blog-category">Category</label>
+                                <select id="blog-category" required>
+                                    <option value="">Select category...</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="technology">Technology</option>
+                                    <option value="business">Business</option>
+                                    <option value="investing">Investing</option>
+                                    <option value="economics">Economics</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-small">Save</button>
+                                <button type="button" id="cancel-add-blog" class="btn btn-secondary btn-small">Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div id="blogs-list" class="company-list">
+                        <div class="company-list-header">
+                            <div class="company-info">
+                                <span class="col-name">Blog Name</span>
+                                <span class="col-email">Category</span>
+                                <span class="col-url">URL</span>
+                            </div>
+                            <span class="col-action">Action</span>
+                        </div>
+                        <!-- Blogs will be dynamically loaded here -->
+                    </div>
+                    <div id="blogs-empty-state" class="empty-state">
+                        <h3>No blogs added yet</h3>
+                        <p>Add your first recommended blog above to start building your collection.</p>
                     </div>
                 </div>
             </div>
@@ -307,6 +378,31 @@
             </div>
         </div>
 
+        <!-- Client Management Modal -->
+        <div id="client-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="client-modal-title">Add New Client</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="client-form">
+                        <div class="form-group">
+                            <label for="client-name">Client Name</label>
+                            <input type="text" id="client-name" placeholder="Enter client name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="client-description">Description (optional)</label>
+                            <textarea id="client-description" placeholder="Brief description of this client"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Client</button>
+                            <button type="button" id="cancel-client-btn" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
     <script src="script.js"></script>
 </body>

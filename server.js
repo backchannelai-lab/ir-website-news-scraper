@@ -33,10 +33,129 @@ app.use(session({
 
 const COMPANIES_FILE = 'companies.json';
 const RECIPIENTS_FILE = 'recipients.json';
+const BLOGS_FILE = 'blogs.json';
 const SETTINGS_FILE = 'settings.json';
 const SENT_ITEMS_FILE = 'sent-items.json';
+const CLIENTS_FILE = 'clients.json';
+
+// Helper function to get client-specific file names
+function getClientFiles(clientId) {
+    return {
+        companies: clientId ? `companies_${clientId}.json` : COMPANIES_FILE,
+        recipients: clientId ? `recipients_${clientId}.json` : RECIPIENTS_FILE,
+        blogs: clientId ? `blogs_${clientId}.json` : BLOGS_FILE,
+        settings: clientId ? `settings_${clientId}.json` : SETTINGS_FILE,
+        sentItems: clientId ? `sent-items_${clientId}.json` : SENT_ITEMS_FILE
+    };
+}
 
 // --- API Endpoints ---
+
+// Client Management endpoints
+app.get('/api/clients', async (req, res) => {
+    try {
+        const data = await fs.readFile(CLIENTS_FILE, 'utf8');
+        const clients = JSON.parse(data);
+        res.json(clients);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            res.json([]);
+        } else {
+            console.error('Error reading clients:', error);
+            res.status(500).json({ error: 'Error reading clients' });
+        }
+    }
+});
+
+app.post('/api/clients', async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        
+        if (!name) {
+            return res.status(400).json({ error: 'Client name is required' });
+        }
+        
+        let clients = [];
+        try {
+            const data = await fs.readFile(CLIENTS_FILE, 'utf8');
+            clients = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        // Check if client name already exists
+        if (clients.find(client => client.name.toLowerCase() === name.toLowerCase())) {
+            return res.status(400).json({ error: 'Client with this name already exists' });
+        }
+        
+        const newClient = {
+            id: Date.now().toString(),
+            name: name.trim(),
+            description: description ? description.trim() : '',
+            createdAt: new Date().toISOString()
+        };
+        
+        clients.push(newClient);
+        await fs.writeFile(CLIENTS_FILE, JSON.stringify(clients, null, 2));
+        
+        res.status(201).json(newClient);
+    } catch (error) {
+        console.error('Error creating client:', error);
+        res.status(500).json({ error: 'Error creating client' });
+    }
+});
+
+app.delete('/api/clients/:id', async (req, res) => {
+    try {
+        const clientId = req.params.id;
+        
+        let clients = [];
+        try {
+            const data = await fs.readFile(CLIENTS_FILE, 'utf8');
+            clients = JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+        
+        const clientIndex = clients.findIndex(client => client.id === clientId);
+        if (clientIndex === -1) {
+            return res.status(404).json({ error: 'Client not found' });
+        }
+        
+        const client = clients[clientIndex];
+        
+        // Delete client-specific data files
+        const clientCompaniesFile = `companies_${clientId}.json`;
+        const clientRecipientsFile = `recipients_${clientId}.json`;
+        const clientSettingsFile = `settings_${clientId}.json`;
+        const clientSentItemsFile = `sent-items_${clientId}.json`;
+        
+        try {
+            await fs.unlink(clientCompaniesFile);
+        } catch (e) { /* File doesn't exist */ }
+        
+        try {
+            await fs.unlink(clientRecipientsFile);
+        } catch (e) { /* File doesn't exist */ }
+        
+        try {
+            await fs.unlink(clientSettingsFile);
+        } catch (e) { /* File doesn't exist */ }
+        
+        try {
+            await fs.unlink(clientSentItemsFile);
+        } catch (e) { /* File doesn't exist */ }
+        
+        // Remove client from list
+        clients.splice(clientIndex, 1);
+        await fs.writeFile(CLIENTS_FILE, JSON.stringify(clients, null, 2));
+        
+        res.status(200).json({ message: 'Client deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting client:', error);
+        res.status(500).json({ error: 'Error deleting client' });
+    }
+});
 
 app.post('/api/register', async (req, res) => {
     try {
@@ -97,7 +216,10 @@ app.get('/api/logout', (req, res) => {
 // Companies API endpoints
 app.get('/api/companies', async (req, res) => {
     try {
-        const data = await fs.readFile(COMPANIES_FILE, 'utf8');
+        const clientId = req.query.clientId;
+        const files = getClientFiles(clientId);
+        
+        const data = await fs.readFile(files.companies, 'utf8');
         const companies = JSON.parse(data);
         res.json(companies);
     } catch (error) {
@@ -113,12 +235,14 @@ app.get('/api/companies', async (req, res) => {
 app.post('/api/companies', async (req, res) => {
     try {
         const companies = req.body;
+        const clientId = req.query.clientId;
         
         if (!Array.isArray(companies)) {
             return res.status(400).json({ error: 'Companies data must be an array' });
         }
         
-        await fs.writeFile(COMPANIES_FILE, JSON.stringify(companies, null, 2));
+        const files = getClientFiles(clientId);
+        await fs.writeFile(files.companies, JSON.stringify(companies, null, 2));
         res.status(200).json({ message: 'Companies saved successfully' });
     } catch (error) {
         console.error('Error saving companies:', error);
@@ -129,7 +253,10 @@ app.post('/api/companies', async (req, res) => {
 // Recipients API endpoints
 app.get('/api/recipients', async (req, res) => {
     try {
-        const data = await fs.readFile(RECIPIENTS_FILE, 'utf8');
+        const clientId = req.query.clientId;
+        const files = getClientFiles(clientId);
+        
+        const data = await fs.readFile(files.recipients, 'utf8');
         const recipients = JSON.parse(data);
         res.json(recipients);
     } catch (error) {
@@ -146,12 +273,14 @@ app.get('/api/recipients', async (req, res) => {
 app.post('/api/recipients', async (req, res) => {
     try {
         const recipients = req.body;
+        const clientId = req.query.clientId;
         
         if (!Array.isArray(recipients)) {
             return res.status(400).json({ error: 'Recipients data must be an array' });
         }
         
-        await fs.writeFile(RECIPIENTS_FILE, JSON.stringify(recipients, null, 2));
+        const files = getClientFiles(clientId);
+        await fs.writeFile(files.recipients, JSON.stringify(recipients, null, 2));
         res.status(200).json({ message: 'Recipients saved successfully' });
     } catch (error) {
         console.error('Error saving recipients:', error);
@@ -159,10 +288,51 @@ app.post('/api/recipients', async (req, res) => {
     }
 });
 
+// Blogs API endpoints
+app.get('/api/blogs', async (req, res) => {
+    try {
+        const clientId = req.query.clientId;
+        const files = getClientFiles(clientId);
+        
+        const data = await fs.readFile(files.blogs, 'utf8');
+        const blogs = JSON.parse(data);
+        res.json(blogs);
+    } catch (error) {
+        // If file doesn't exist, return empty array
+        if (error.code === 'ENOENT') {
+            res.json([]);
+        } else {
+            console.error('Error reading blogs:', error);
+            res.status(500).json({ error: 'Error reading blogs' });
+        }
+    }
+});
+
+app.post('/api/blogs', async (req, res) => {
+    try {
+        const blogs = req.body;
+        const clientId = req.query.clientId;
+        
+        if (!Array.isArray(blogs)) {
+            return res.status(400).json({ error: 'Blogs data must be an array' });
+        }
+        
+        const files = getClientFiles(clientId);
+        await fs.writeFile(files.blogs, JSON.stringify(blogs, null, 2));
+        res.status(200).json({ message: 'Blogs saved successfully' });
+    } catch (error) {
+        console.error('Error saving blogs:', error);
+        res.status(500).json({ error: 'Error saving blogs' });
+    }
+});
+
 // Settings API endpoints
 app.get('/api/settings', async (req, res) => {
     try {
-        const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+        const clientId = req.query.clientId;
+        const files = getClientFiles(clientId);
+        
+        const data = await fs.readFile(files.settings, 'utf8');
         const settings = JSON.parse(data);
         res.json(settings);
     } catch (error) {
@@ -178,6 +348,7 @@ app.get('/api/settings', async (req, res) => {
 app.post('/api/settings/email', async (req, res) => {
     try {
         const emailSettings = req.body;
+        const clientId = req.query.clientId;
         
         // Validate required fields
         const requiredFields = ['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'fromName', 'fromEmail', 'toEmails', 'subject'];
@@ -187,16 +358,17 @@ app.post('/api/settings/email', async (req, res) => {
             }
         }
         
+        const files = getClientFiles(clientId);
         let settings = {};
         try {
-            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            const data = await fs.readFile(files.settings, 'utf8');
             settings = JSON.parse(data);
         } catch (error) {
             if (error.code !== 'ENOENT') throw error;
         }
         
         settings.email = emailSettings;
-        await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+        await fs.writeFile(files.settings, JSON.stringify(settings, null, 2));
         
         res.status(200).json({ message: 'Email settings saved successfully' });
     } catch (error) {
@@ -208,21 +380,23 @@ app.post('/api/settings/email', async (req, res) => {
 app.post('/api/settings/schedule', async (req, res) => {
     try {
         const scheduleSettings = req.body;
+        const clientId = req.query.clientId;
         
         if (!scheduleSettings.cron) {
             return res.status(400).json({ error: 'Cron schedule is required' });
         }
         
+        const files = getClientFiles(clientId);
         let settings = {};
         try {
-            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            const data = await fs.readFile(files.settings, 'utf8');
             settings = JSON.parse(data);
         } catch (error) {
             if (error.code !== 'ENOENT') throw error;
         }
         
         settings.schedule = scheduleSettings;
-        await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+        await fs.writeFile(files.settings, JSON.stringify(settings, null, 2));
         
         res.status(200).json({ message: 'Schedule settings saved successfully' });
     } catch (error) {
@@ -234,21 +408,23 @@ app.post('/api/settings/schedule', async (req, res) => {
 app.post('/api/settings/email-template', async (req, res) => {
     try {
         const emailTemplate = req.body;
+        const clientId = req.query.clientId;
         
         if (!emailTemplate.subject || !emailTemplate.body) {
             return res.status(400).json({ error: 'Subject and body are required' });
         }
         
+        const files = getClientFiles(clientId);
         let settings = {};
         try {
-            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            const data = await fs.readFile(files.settings, 'utf8');
             settings = JSON.parse(data);
         } catch (error) {
             if (error.code !== 'ENOENT') throw error;
         }
         
         settings.emailTemplate = emailTemplate;
-        await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
+        await fs.writeFile(files.settings, JSON.stringify(settings, null, 2));
         
         res.status(200).json({ message: 'Email template saved successfully' });
     } catch (error) {
@@ -259,10 +435,13 @@ app.post('/api/settings/email-template', async (req, res) => {
 
 app.post('/api/test-email', async (req, res) => {
     try {
+        const clientId = req.query.clientId;
+        const files = getClientFiles(clientId);
+        
         // Check if email settings exist
         let settings = {};
         try {
-            const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+            const data = await fs.readFile(files.settings, 'utf8');
             settings = JSON.parse(data);
         } catch (error) {
             if (error.code !== 'ENOENT') throw error;
@@ -279,7 +458,7 @@ app.post('/api/test-email', async (req, res) => {
             <p>Sent at: ${new Date().toLocaleString()}</p>
         `;
         
-        await sendEmail(testHtml);
+        await sendEmail(testHtml, null, files);
         res.status(200).json({ message: 'Test email sent successfully' });
     } catch (error) {
         console.error('Error sending test email:', error);
@@ -609,10 +788,13 @@ async function scrapeAndEmail() {
     }
 }
 
-async function sendEmail(html, customSubject = null) {
+async function sendEmail(html, customSubject = null, files = null) {
     try {
+        // Use provided files or default files
+        const settingsFile = files ? files.settings : SETTINGS_FILE;
+        
         // Load settings from file
-        const data = await fs.readFile(SETTINGS_FILE, 'utf8');
+        const data = await fs.readFile(settingsFile, 'utf8');
         const settings = JSON.parse(data);
         const emailConfig = settings.email;
 

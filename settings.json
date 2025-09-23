@@ -13,5 +13,9 @@
   },
   "schedule": {
     "cron": "0 8 * * *"
+  },
+  "emailTemplate": {
+    "subject": "Daily Investor Relations Update - {DATE}",
+    "body": "<h1></h1><span style=\"font-size: 18px; display: inline;\"></span><span style=\"font-size: 16px; display: inline;\"></span><span style=\"font-size: 20px; display: inline;\"></span><span style=\"font-size: 24px; display: inline;\"><b><u style=\"\">Daily Investor Relations Update\n</u></b></span><p></p>\n<p><strong>{COMPANY_NAME} ({TICKER})</strong> - <a href=\"{URL}\" target=\"_blank\">{TITLE}</a> - {PUBLISH_DATE}</p>"
   }
 }
